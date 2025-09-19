@@ -70,7 +70,7 @@ def ensure_directories() -> Path:
     resources_dir = Path("resources")
     uploads_dir = resources_dir / "uploads"
     uploads_dir.mkdir(parents=True, exist_ok=True)
-    return uploads_dir
+    return resources_dir
 
 
 def send_503(sock: socket.socket) -> None:
@@ -88,7 +88,7 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
     try:
         while requests_handled < 100 and not _shutdown_event.is_set():
             try:
-                raw = receive_http_request(sock)
+                raw, leftover = receive_http_request(sock)
             except (BadRequestError, HeaderTooLargeError) as e:
                 sock.sendall(make_error_response(400, "Bad Request", str(e), close=True))
                 break
@@ -168,9 +168,7 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
 
             if method == "POST":
                 # Only JSON uploads, simplistic read of body if present after headers
-                header_block = raw.decode("latin-1")
-                _, after = header_block.split("\r\n\r\n", 1)
-                body = after.encode("latin-1")  # there may be extra bytes already read
+                body = leftover  # bytes already read beyond headers
                 content_type = headers.get("content-type", "").split(";")[0].strip()
                 if content_type != "application/json":
                     sock.sendall(make_error_response(415, "Unsupported Media Type", "Only application/json accepted", close=connection_close))
