@@ -1,0 +1,1 @@
+FROM python:3.12-slim\n\nWORKDIR /app\n\nCOPY . .\n\nEXPOSE 8080\n\nCMD [python, server.py]\n

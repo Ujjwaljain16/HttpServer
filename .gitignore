@@ -1,0 +1,1 @@
+# Byte-compiled / optimized / DLL files\n__pycache__/\n*.py[cod]\n*.pyo\n*.pyd\n\n# Virtual environments\n.venv/\nvenv/\nENV/\n\n# Distribution / packaging\nbuild/\ndist/\n.eggs/\n*.egg-info/\n\n# Tools\n.pytest_cache/\n.mypy_cache/\n.coverage\ncover/\nhtmlcov/\n\n# OS\n.DS_Store\nThumbs.db\n\n# IDE\n.vscode/\n.idea/\n
