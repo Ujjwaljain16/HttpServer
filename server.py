@@ -33,6 +33,7 @@ from server_lib.security import (
     HostMismatchError,
 )
 from server_lib.threadpool import ThreadPool
+from server_lib.utils import generate_upload_filename
 
 
 _shutdown_event = threading.Event()
@@ -129,9 +130,8 @@ def handle_post(path: str, headers: dict, body_bytes: bytes, resources_dir: Path
 
     uploads_dir = resources_dir / "uploads"
     uploads_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    rand = secrets.token_hex(4)
-    final = uploads_dir / f"upload_{ts}_{rand}.json"
+    filename = generate_upload_filename()
+    final = uploads_dir / filename
     tmp = final.with_suffix(".tmp")
     tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
     os.replace(tmp, final)
@@ -244,7 +244,7 @@ def main(argv: list[str] | None = None) -> int:
     logger.info("HTTP Server started on http://%s:%d", args.host, args.port)
     logger.info("Thread pool size: %d", args.thread_pool_size)
 
-    pool = ThreadPool(num_workers=args.thread_pool_size, queue_max=64)
+    pool = ThreadPool(num_workers=args.thread_pool_size, queue_max=32)
 
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
