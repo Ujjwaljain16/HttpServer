@@ -80,6 +80,70 @@ def send_503(sock: socket.socket) -> None:
         sock.close()
 
 
+def handle_get(path: str, headers: dict, resources_dir: Path, keep_alive: bool) -> bytes:
+    # Map / to index.html
+    req_path = "index.html" if path == "/" else path.lstrip("/")
+    try:
+        target = safe_resolve_path(req_path, resources_dir)
+    except ForbiddenError:
+        return make_error_response(403, "Forbidden", "Forbidden", close=not keep_alive)
+
+    if not target.exists() or not target.is_file():
+        return make_error_response(404, "Not Found", "Not Found", close=not keep_alive)
+
+    name = target.name
+    ext = target.suffix.lower()
+    if ext == ".html":
+        content_type = "text/html; charset=utf-8"
+        disposition = None
+    elif ext in {".png", ".jpg", ".jpeg", ".txt"}:
+        content_type = "application/octet-stream"
+        disposition = f"attachment; filename=\"{name}\""
+    else:
+        return make_error_response(415, "Unsupported Media Type", "Unsupported file type", close=not keep_alive)
+
+    data = target.read_bytes()
+    headers_out = {"Content-Type": content_type}
+    if disposition:
+        headers_out["Content-Disposition"] = disposition
+    if keep_alive:
+        headers_out["Connection"] = "keep-alive"
+        headers_out["Keep-Alive"] = "timeout=30, max=100"
+    return build_response(200, "OK", headers_out, data)
+
+
+def handle_post(path: str, headers: dict, body_bytes: bytes, resources_dir: Path, keep_alive: bool) -> bytes:
+    content_type = headers.get("content-type", "").split(";")[0].strip()
+    if content_type != "application/json":
+        return make_error_response(415, "Unsupported Media Type", "Only application/json accepted", close=not keep_alive)
+
+    # Only allow /upload path in this iteration
+    if path.rstrip("/") != "/upload":
+        return make_error_response(404, "Not Found", "Not Found", close=not keep_alive)
+
+    # Parse JSON
+    try:
+        obj = json.loads(body_bytes.decode("utf-8"))
+    except Exception:
+        return make_error_response(400, "Bad Request", "Invalid JSON", close=not keep_alive)
+
+    uploads_dir = resources_dir / "uploads"
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    rand = secrets.token_hex(4)
+    final = uploads_dir / f"upload_{ts}_{rand}.json"
+    tmp = final.with_suffix(".tmp")
+    tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, final)
+
+    resp_body = json.dumps({"filepath": f"/uploads/{final.name}"}, ensure_ascii=False).encode("utf-8")
+    headers_out = {"Content-Type": "application/json; charset=utf-8"}
+    if keep_alive:
+        headers_out["Connection"] = "keep-alive"
+        headers_out["Keep-Alive"] = "timeout=30, max=100"
+    return build_response(201, "Created", headers_out, resp_body)
+
+
 def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Path, server_host: str, server_port: int) -> None:
     logger = logging.getLogger("server")
     # Keep-alive simple handling
@@ -108,81 +172,32 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
 
             logger.info("%s %s %s from %s:%d", method, path, version, addr[0], addr[1])
 
-            connection_close = headers.get("connection", "").lower() == "close" or version == "HTTP/1.0"
+            keep_alive = not (headers.get("connection", "").lower() == "close" or version == "HTTP/1.0")
 
             if method not in {"GET", "POST"}:
-                resp = make_error_response(405, "Method Not Allowed", "Only GET and POST supported", close=connection_close)
+                resp = make_error_response(405, "Method Not Allowed", "Only GET and POST supported", close=not keep_alive)
                 sock.sendall(resp)
-                if connection_close:
+                if not keep_alive:
                     break
                 requests_handled += 1
                 continue
 
             if method == "GET":
-                # Map / to index.html
-                req_path = "index.html" if path == "/" else path.lstrip("/")
-                try:
-                    target = safe_resolve_path(req_path, resources_dir)
-                except ForbiddenError:
-                    sock.sendall(make_error_response(403, "Forbidden", "Forbidden", close=connection_close))
-                    if connection_close:
-                        break
-                    requests_handled += 1
-                    continue
-                if not target.exists() or not target.is_file():
-                    sock.sendall(make_error_response(404, "Not Found", "Not Found", close=connection_close))
-                    if connection_close:
-                        break
-                    requests_handled += 1
-                    continue
-
-                # Simple content-type/disp rules
-                name = target.name
-                ext = target.suffix.lower()
-                if ext == ".html":
-                    content_type = "text/html; charset=utf-8"
-                    disposition = None
-                elif ext in {".png", ".jpg", ".jpeg", ".txt"}:
-                    content_type = "application/octet-stream"
-                    disposition = f"attachment; filename=\"{name}\""
-                else:
-                    sock.sendall(make_error_response(415, "Unsupported Media Type", "Unsupported file type", close=connection_close))
-                    if connection_close:
-                        break
-                    requests_handled += 1
-                    continue
-
-                data = target.read_bytes()
-                headers_out = {"Content-Type": content_type}
-                if disposition:
-                    headers_out["Content-Disposition"] = disposition
-                if not connection_close:
-                    headers_out["Connection"] = "keep-alive"
-                    headers_out["Keep-Alive"] = "timeout=30, max=100"
-                resp = build_response(200, "OK", headers_out, data)
+                resp = handle_get(path, headers, resources_dir, keep_alive)
                 sock.sendall(resp)
-                if connection_close:
+                if not keep_alive:
                     break
                 requests_handled += 1
                 continue
 
             if method == "POST":
-                # Only JSON uploads, simplistic read of body if present after headers
-                body = leftover  # bytes already read beyond headers
-                content_type = headers.get("content-type", "").split(";")[0].strip()
-                if content_type != "application/json":
-                    sock.sendall(make_error_response(415, "Unsupported Media Type", "Only application/json accepted", close=connection_close))
-                    if connection_close:
-                        break
-                    requests_handled += 1
-                    continue
                 # Determine content length and read remaining if needed
                 try:
                     content_length = int(headers.get("content-length", "0"))
                 except ValueError:
-                    sock.sendall(make_error_response(400, "Bad Request", "Invalid Content-Length", close=connection_close))
+                    sock.sendall(make_error_response(400, "Bad Request", "Invalid Content-Length", close=not keep_alive))
                     break
-                # If body is shorter than content-length, read remaining bytes
+                body = leftover
                 read_remaining = max(0, content_length - len(body))
                 buf = body
                 while read_remaining > 0:
@@ -192,24 +207,9 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
                     buf += chunk
                     read_remaining -= len(chunk)
 
-                # Save atomically
-                uploads_dir = resources_dir / "uploads"
-                uploads_dir.mkdir(parents=True, exist_ok=True)
-                ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-                rand = secrets.token_hex(4)
-                final = uploads_dir / f"upload_{ts}_{rand}.json"
-                tmp = final.with_suffix(".tmp")
-                json_data = json.loads(buf.decode("utf-8"))
-                tmp.write_text(json.dumps(json_data, ensure_ascii=False, indent=2), encoding="utf-8")
-                os.replace(tmp, final)
-                body_out = json.dumps({"filepath": str(final)}, ensure_ascii=False).encode("utf-8")
-                headers_out = {"Content-Type": "application/json; charset=utf-8"}
-                if not connection_close:
-                    headers_out["Connection"] = "keep-alive"
-                    headers_out["Keep-Alive"] = "timeout=30, max=100"
-                resp = build_response(201, "Created", headers_out, body_out)
+                resp = handle_post(path, headers, buf, resources_dir, keep_alive)
                 sock.sendall(resp)
-                if connection_close:
+                if not keep_alive:
                     break
                 requests_handled += 1
                 continue
