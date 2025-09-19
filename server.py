@@ -81,11 +81,11 @@ def send_503(sock: socket.socket) -> None:
         sock.close()
 
 
-def handle_get(path: str, headers: dict, resources_dir: Path, keep_alive: bool) -> bytes:
+def handle_get(path: str, headers: dict, resources_dir: Path, keep_alive: bool, client_addr: str = None) -> bytes:
     # Map / to index.html
     req_path = "index.html" if path == "/" else path.lstrip("/")
     try:
-        target = safe_resolve_path(req_path, resources_dir)
+        target = safe_resolve_path(req_path, resources_dir, client_addr)
     except ForbiddenError:
         return make_error_response(403, "Forbidden", "Forbidden", close=not keep_alive)
 
@@ -194,8 +194,9 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
             method, path, version, headers = parse_http_request(raw)
             
             # Validate Host header
+            client_addr = f"{addr[0]}:{addr[1]}"
             try:
-                validate_host_header(headers, server_host, server_port)
+                validate_host_header(headers, server_host, server_port, client_addr)
             except HostMissingError:
                 sock.sendall(make_error_response(400, "Bad Request", "Missing Host header", close=True))
                 break
@@ -223,7 +224,7 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
                 continue
 
             if method == "GET":
-                resp = handle_get(path, headers, resources_dir, keep_alive)
+                resp = handle_get(path, headers, resources_dir, keep_alive, client_addr)
                 sock.sendall(resp)
                 if not keep_alive:
                     break
