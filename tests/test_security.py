@@ -18,3 +18,17 @@ def test_safe_resolve_traversal(tmp_path: Path):
     resources.mkdir(parents=True)
     with pytest.raises(ForbiddenError):
         safe_resolve_path("../etc/passwd", resources)
+
+
+def test_safe_resolve_percent_encoded_traversal(tmp_path: Path):
+    resources = tmp_path / "resources"
+    resources.mkdir(parents=True)
+    with pytest.raises(ForbiddenError):
+        safe_resolve_path("..%2f..%2fetc/passwd", resources)
+
+
+def test_safe_resolve_absolute_windows_drive(tmp_path: Path):
+    resources = tmp_path / "resources"
+    resources.mkdir(parents=True)
+    with pytest.raises(ForbiddenError):
+        safe_resolve_path("C:/Windows/system32", resources)

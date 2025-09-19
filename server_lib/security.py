@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Dict
+from urllib.parse import unquote
 
 
 class ForbiddenError(Exception):
@@ -19,27 +21,56 @@ class HostMismatchError(Exception):
     pass
 
 
+def _normalize_components(path_str: str) -> list[str]:
+    # Normalize slashes and split
+    path_str = path_str.replace("\\", "/")
+    parts: list[str] = []
+    for segment in path_str.split("/"):
+        if segment in ("", "."):
+            continue
+        if segment == "..":
+            # Any up-level is forbidden for request paths
+            raise ForbiddenError("Path traversal detected")
+        parts.append(segment)
+    return parts
+
+
 def safe_resolve_path(request_path: str, resources_dir: Path) -> Path:
     """Resolve request_path safely under resources_dir.
 
-    - Reject absolute paths
-    - Reject traversal sequences (..), including percent-encoded ones is caller's duty pre-normalization
+    - Decode percent-escapes once (blocking %2f, %2e etc. based traversal)
+    - Reject absolute paths (after decoding and normalization)
+    - Reject traversal sequences ('..')
     - Canonicalize and ensure final path is within resources_dir
     """
-    # Normalize leading slash
-    rel = request_path.lstrip("/")
+    # Strip query string/fragments if accidentally included
+    for delim in ("?", "#"):
+        if delim in request_path:
+            request_path = request_path.split(delim, 1)[0]
 
-    # Block obvious traversal
-    if ".." in rel.split("/"):
-        raise ForbiddenError("Path traversal detected")
+    # Decode URL escapes (one pass)
+    decoded = unquote(request_path)
 
-    # Compute canonical absolute path and ensure containment
+    # Quick absolute path checks (posix and windows styles)
+    if decoded.startswith(("/", "\\")):
+        # Leading slash indicates absolute request; we'll treat as root-relative inside resources
+        decoded = decoded.lstrip("/\\")
+    # Windows drive letters like C:\ or C:/
+    if re.match(r"^[A-Za-z]:[\\/]", decoded):
+        raise ForbiddenError("Absolute path not allowed")
+
+    # Normalize components and forbid any '..'
+    components = _normalize_components(decoded)
+
+    # Join under resources and resolve
     base = resources_dir.resolve()
-    target = (base / rel).resolve()
+    target = (base.joinpath(*components)).resolve()
+
     try:
         target.relative_to(base)
     except ValueError as exc:
         raise ForbiddenError("Resolved path escapes resources directory") from exc
+
     return target
 
 
