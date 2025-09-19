@@ -110,7 +110,7 @@ class ServerLogger:
     
     def debug(self, message: str, *args, extra_data: Optional[Dict[str, Any]] = None) -> None:
         """Log a debug message."""
-        if args:
+        if args and not extra_data:
             formatted_message = message % args
         else:
             formatted_message = message
@@ -120,7 +120,7 @@ class ServerLogger:
     
     def info(self, message: str, *args, extra_data: Optional[Dict[str, Any]] = None) -> None:
         """Log an info message."""
-        if args:
+        if args and not extra_data:
             formatted_message = message % args
         else:
             formatted_message = message
@@ -130,7 +130,7 @@ class ServerLogger:
     
     def warning(self, message: str, *args, extra_data: Optional[Dict[str, Any]] = None) -> None:
         """Log a warning message."""
-        if args:
+        if args and not extra_data:
             formatted_message = message % args
         else:
             formatted_message = message
@@ -140,7 +140,7 @@ class ServerLogger:
     
     def error(self, message: str, *args, extra_data: Optional[Dict[str, Any]] = None) -> None:
         """Log an error message."""
-        if args:
+        if args and not extra_data:
             formatted_message = message % args
         else:
             formatted_message = message
@@ -150,7 +150,7 @@ class ServerLogger:
     
     def critical(self, message: str, *args, extra_data: Optional[Dict[str, Any]] = None) -> None:
         """Log a critical message."""
-        if args:
+        if args and not extra_data:
             formatted_message = message % args
         else:
             formatted_message = message

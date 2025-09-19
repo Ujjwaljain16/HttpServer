@@ -64,8 +64,8 @@ def test_logger_json_output():
     
     try:
         logger = ServerLogger("test", json_log_file=json_file, level=10)
-        logger.info("Test message", {"key": "value"})
-        logger.warning("Warning message", {"error_code": 500})
+        logger.info("Test message", extra_data={"key": "value"})
+        logger.warning("Warning message", extra_data={"error_code": 500})
         
         # Close logger to release file handle
         logger.close()
@@ -198,7 +198,7 @@ def test_logger_convenience_functions():
     critical("Critical message")
     
     # Test with extra data
-    info("Info with data", {"key": "value"})
+    info("Info with data", extra_data={"key": "value"})
     
     assert True
 

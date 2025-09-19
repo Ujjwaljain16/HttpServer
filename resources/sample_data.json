@@ -1,0 +1,26 @@
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "message": "This is a sample JSON file for testing the HTTP server's POST upload functionality.",
+  "timestamp": "2025-09-19T17:30:00Z",
+  "user_agent": "Sample JSON Uploader/1.0",
+  "data": {
+    "type": "test",
+    "category": "sample",
+    "priority": "low",
+    "tags": ["http", "server", "testing", "json"]
+  },
+  "metadata": {
+    "file_size": 256,
+    "content_type": "application/json",
+    "encoding": "utf-8",
+    "checksum": "abc123def456"
+  },
+  "test_scenarios": [
+    "Basic JSON upload",
+    "Large JSON payload",
+    "Special characters in values",
+    "Nested object structures",
+    "Array data handling"
+  ]
+}

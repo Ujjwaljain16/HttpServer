@@ -23,9 +23,10 @@ class FakeSocket:
 
 def test_receive_headers_multi_chunk():
     # Simulate split across multiple recv() calls
-    s = FakeSocket([b"GET / HTTP/1.1\r\nHo", b"st: a\r\n\r\nEXTRA BODY".encode("latin-1")])
-    data = receive_http_request(s, max_header_size=8192, timeout=1)
-    assert data.endswith(b"\r\n\r\n")
+    s = FakeSocket([b"GET / HTTP/1.1\r\nHo", b"st: a\r\n\r\nEXTRA BODY"])
+    headers, leftover = receive_http_request(s, max_header_size=8192, timeout=1)
+    assert headers.endswith(b"\r\n\r\n")
+    assert leftover == b"EXTRA BODY"
 
 
 def test_parse_valid_request_and_folded_headers():

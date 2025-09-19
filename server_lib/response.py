@@ -5,7 +5,7 @@ from __future__ import annotations
 from email.utils import formatdate
 from typing import Dict, Iterable, Tuple
 
-SERVER_HEADER = "SimpleThreadedServer/0.1"
+SERVER_HEADER = "Multi-threaded HTTP Server"
 
 
 def build_response(

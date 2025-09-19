@@ -23,7 +23,7 @@ def test_make_service_unavailable_response_basic():
     
     # Check required headers
     assert any("Date:" in line for line in lines)
-    assert any("Server: SimpleThreadedServer/0.1" in line for line in lines)
+    assert any("Server: Multi-threaded HTTP Server" in line for line in lines)
     assert any("Content-Type: text/plain; charset=utf-8" in line for line in lines)
     assert any("Content-Length:" in line for line in lines)
     assert any("Retry-After: 5" in line for line in lines)

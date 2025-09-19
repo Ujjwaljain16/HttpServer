@@ -1,0 +1,104 @@
+{
+  "test_id": "http_server_test_001",
+  "description": "Comprehensive test payload for HTTP server validation",
+  "server_info": {
+    "name": "Multi-threaded HTTP Server",
+    "version": "0.1",
+    "protocol": "HTTP/1.1",
+    "features": [
+      "Multi-threading",
+      "Persistent connections",
+      "Static file serving",
+      "JSON upload",
+      "Security validation",
+      "Error handling"
+    ]
+  },
+  "test_data": {
+    "strings": [
+      "Simple ASCII text",
+      "Unicode: 你好世界 🌍",
+      "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?",
+      "Newlines:\nLine 1\nLine 2\nLine 3",
+      "Tabs:\tColumn1\tColumn2\tColumn3"
+    ],
+    "numbers": {
+      "integer": 42,
+      "float": 3.14159,
+      "negative": -100,
+      "zero": 0,
+      "large": 999999999
+    },
+    "booleans": {
+      "true": true,
+      "false": false
+    },
+    "null_value": null,
+    "empty_string": "",
+    "empty_array": [],
+    "empty_object": {}
+  },
+  "nested_structures": {
+    "level1": {
+      "level2": {
+        "level3": {
+          "deep_value": "This is deeply nested",
+          "array": [1, 2, 3, 4, 5],
+          "object": {
+            "key": "value",
+            "number": 123
+          }
+        }
+      }
+    }
+  },
+  "array_data": [
+    {
+      "id": 1,
+      "name": "Item 1",
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Item 2",
+      "active": false
+    },
+    {
+      "id": 3,
+      "name": "Item 3",
+      "active": true
+    }
+  ],
+  "unicode_test": {
+    "languages": {
+      "english": "Hello, World!",
+      "spanish": "¡Hola, Mundo!",
+      "french": "Bonjour, le Monde!",
+      "german": "Hallo, Welt!",
+      "japanese": "こんにちは、世界！",
+      "chinese": "你好，世界！",
+      "arabic": "مرحبا بالعالم!",
+      "russian": "Привет, мир!",
+      "emoji": "🚀 🌟 💻 🔧 ⚡ 🎯 📊 🔒 🌐"
+    }
+  },
+  "performance_metrics": {
+    "request_count": 1000,
+    "average_response_time": 0.05,
+    "memory_usage": "85%",
+    "thread_pool_utilization": 0.75,
+    "queue_size": 15,
+    "active_connections": 8
+  },
+  "security_validation": {
+    "path_traversal_attempts": 0,
+    "host_header_violations": 0,
+    "malformed_requests": 0,
+    "rate_limit_hits": 0
+  },
+  "test_commands": [
+    "curl -X POST -H 'Content-Type: application/json' -d @test_payload.json http://127.0.0.1:8080/upload",
+    "curl -v -X POST -H 'Content-Type: application/json' -d '{\"test\": \"data\"}' http://127.0.0.1:8080/upload",
+    "curl -H 'Content-Type: application/json' -d '{\"name\": \"Test User\", \"message\": \"Hello Server!\"}' http://127.0.0.1:8080/upload"
+  ]
+}

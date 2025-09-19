@@ -152,7 +152,11 @@ def handle_post(path: str, headers: dict, body_bytes: bytes, resources_dir: Path
     tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
     os.replace(tmp, final)
 
-    resp_body = json.dumps({"filepath": f"/uploads/{final.name}"}, ensure_ascii=False).encode("utf-8")
+    resp_body = json.dumps({
+        "status": "success",
+        "message": "File created successfully",
+        "filepath": f"/uploads/{final.name}"
+    }, ensure_ascii=False).encode("utf-8")
     headers_out = {"Content-Type": "application/json; charset=utf-8"}
     if keep_alive:
         headers_out["Connection"] = "keep-alive"

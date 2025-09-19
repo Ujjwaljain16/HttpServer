@@ -1,1 +1,50 @@
-﻿sample file
+﻿Simple HTTP Server - Sample Text File
+=====================================
+
+This is a sample text file served by the Simple HTTP Server.
+
+Server Features:
+- Multi-threaded request handling
+- HTTP/1.1 persistent connections
+- Static file serving
+- JSON upload capability
+- Security features (path traversal protection, Host header validation)
+- Comprehensive logging and monitoring
+
+File Information:
+- Content-Type: text/plain
+- Content-Disposition: attachment; filename="sample.txt"
+- Served as binary file with proper headers
+
+Test Commands:
+curl -O http://127.0.0.1:8080/sample.txt
+curl -v http://127.0.0.1:8080/sample.txt
+
+This file demonstrates the server's ability to serve text files
+with proper Content-Type and Content-Disposition headers.
+
+The server handles various file types:
+- HTML files (.html) - served as text/html
+- Text files (.txt) - served as application/octet-stream with attachment
+- Image files (.png, .jpg, .jpeg) - served as application/octet-stream with attachment
+- Other files - return 415 Unsupported Media Type
+
+Security Features:
+- Path traversal protection (blocks ../ attacks)
+- Host header validation
+- Input validation for JSON uploads
+- Comprehensive error handling
+
+Performance:
+- Thread pool with configurable worker count
+- Bounded queue for request handling
+- Keep-alive connections with 30s timeout
+- Maximum 100 requests per connection
+
+For more information, visit:
+- http://127.0.0.1:8080/ (Home page)
+- http://127.0.0.1:8080/about.html (About page)
+- http://127.0.0.1:8080/contact.html (Contact & API testing)
+
+Generated on: 2025-09-19
+Server Version: Multi-threaded HTTP Server

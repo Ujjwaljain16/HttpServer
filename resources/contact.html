@@ -1,1 +1,223 @@
-﻿<!doctype html>\n<html><head><meta charset=\utf-8\><title>Contact</title></head><body><h1>Contact</h1></body></html>
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Simple HTTP Server</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #e74c3c;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav {
+            margin: 20px 0;
+        }
+        .nav a {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .nav a:hover {
+            background-color: #c0392b;
+        }
+        .contact-form {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #c0392b;
+        }
+        .api-example {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📞 Contact & API Testing</h1>
+        <p>Test the server's API endpoints and upload functionality</p>
+    </div>
+    
+    <div class="content">
+        <h2>API Endpoints</h2>
+        <p>This server provides several endpoints for testing different HTTP features:</p>
+        
+        <h3>📄 Static File Serving</h3>
+        <div class="api-example">
+GET /                    # Home page (index.html)
+GET /about.html          # About page
+GET /contact.html        # This page
+GET /sample.txt          # Text file download
+GET /logo.png           # PNG image
+GET /photo.jpg          # JPEG image
+GET /big.png            # Large binary file (>1MB)
+        </div>
+        
+        <h3>📤 JSON Upload API</h3>
+        <div class="api-example">
+POST /upload
+Content-Type: application/json
+Content-Length: [length]
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "message": "Hello from the API!"
+}
+        </div>
+        
+        <h3>🧪 Test the Upload API</h3>
+        <div class="contact-form">
+            <h4>Sample JSON Upload</h4>
+            <p>Use this form to generate test JSON data for the upload endpoint:</p>
+            
+            <form id="testForm">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" value="Test User" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" value="test@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Message:</label>
+                    <textarea id="message" name="message" placeholder="Enter your test message...">This is a test message for the HTTP server upload functionality.</textarea>
+                </div>
+                
+                <button type="button" class="btn" onclick="generateJSON()">Generate JSON</button>
+            </form>
+            
+            <div id="jsonOutput" style="margin-top: 20px; display: none;">
+                <h4>Generated JSON:</h4>
+                <div class="api-example" id="jsonContent"></div>
+                <p><strong>cURL Command:</strong></p>
+                <div class="api-example" id="curlCommand"></div>
+            </div>
+        </div>
+        
+        <h3>🔧 Server Testing Commands</h3>
+        <p>Use these commands to test different server features:</p>
+        
+        <div class="api-example">
+# Test basic GET request
+curl -v http://127.0.0.1:8080/
+
+# Test missing Host header (should return 400)
+curl -v -H "Host:" http://127.0.0.1:8080/
+
+# Test path traversal (should return 403)
+curl -v http://127.0.0.1:8080/../etc/passwd
+
+# Test unsupported method (should return 405)
+curl -v -X PUT http://127.0.0.1:8080/
+
+# Test JSON upload
+curl -v -X POST -H "Content-Type: application/json" \
+  -d '{"name":"Test","message":"Hello"}' \
+  http://127.0.0.1:8080/upload
+
+# Test keep-alive connection
+curl -v --keepalive http://127.0.0.1:8080/
+        </div>
+        
+        <h3>📊 Server Status</h3>
+        <p>Monitor the server's performance and thread status:</p>
+        <ul>
+            <li><strong>Thread Pool:</strong> Check server logs for thread status updates</li>
+            <li><strong>Connection Count:</strong> Monitor active connections</li>
+            <li><strong>Queue Status:</strong> Watch for 503 responses under load</li>
+            <li><strong>Security Logs:</strong> Review security.log for violations</li>
+        </ul>
+        
+        <div class="nav">
+            <a href="/">Home</a>
+            <a href="/about.html">About</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/sample.txt">Sample Text</a>
+            <a href="/logo.png">Logo</a>
+        </div>
+    </div>
+    
+    <script>
+        function generateJSON() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+            
+            const jsonData = {
+                name: name,
+                email: email,
+                message: message,
+                timestamp: new Date().toISOString(),
+                user_agent: navigator.userAgent
+            };
+            
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            const curlCommand = `curl -v -X POST -H "Content-Type: application/json" -d '${JSON.stringify(jsonData)}' http://127.0.0.1:8080/upload`;
+            
+            document.getElementById('jsonContent').textContent = jsonString;
+            document.getElementById('curlCommand').textContent = curlCommand;
+            document.getElementById('jsonOutput').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

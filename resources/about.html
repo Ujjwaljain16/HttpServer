@@ -1,1 +1,137 @@
-<html>about</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Simple HTTP Server</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #27ae60;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav {
+            margin: 20px 0;
+        }
+        .nav a {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 8px 16px;
+            background-color: #27ae60;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .nav a:hover {
+            background-color: #229954;
+        }
+        .tech-spec {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .code {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 About the Server</h1>
+        <p>Technical specifications and implementation details</p>
+    </div>
+    
+    <div class="content">
+        <h2>Server Architecture</h2>
+        <p>This HTTP server is built from scratch using Python's standard library, demonstrating core networking and web server concepts.</p>
+        
+        <div class="tech-spec">
+            <h3>🔧 Core Components</h3>
+            <ul>
+                <li><strong>Socket Programming:</strong> Low-level TCP socket handling</li>
+                <li><strong>Thread Pool:</strong> Fixed-size worker thread pool with bounded queue</li>
+                <li><strong>HTTP Parser:</strong> Manual HTTP/1.1 request parsing</li>
+                <li><strong>Security Layer:</strong> Path traversal protection and Host header validation</li>
+                <li><strong>Response Builder:</strong> Standardized HTTP response generation</li>
+                <li><strong>Logging System:</strong> Comprehensive logging with thread tracking</li>
+            </ul>
+        </div>
+        
+        <div class="tech-spec">
+            <h3>🌐 HTTP Features</h3>
+            <ul>
+                <li><strong>Methods:</strong> GET and POST support</li>
+                <li><strong>Persistent Connections:</strong> HTTP/1.1 keep-alive with 30s timeout</li>
+                <li><strong>Content Types:</strong> HTML, JSON, binary files with proper MIME types</li>
+                <li><strong>Status Codes:</strong> 200, 201, 400, 403, 404, 405, 415, 503</li>
+                <li><strong>Headers:</strong> Content-Length, Content-Type, Connection, Keep-Alive, Retry-After</li>
+            </ul>
+        </div>
+        
+        <div class="tech-spec">
+            <h3>🔒 Security Features</h3>
+            <ul>
+                <li><strong>Path Traversal Protection:</strong> Blocks ../ and percent-encoded attacks</li>
+                <li><strong>Host Header Validation:</strong> Prevents Host header injection</li>
+                <li><strong>Input Validation:</strong> JSON parsing and Content-Length validation</li>
+                <li><strong>Error Handling:</strong> Graceful handling of malformed requests</li>
+                <li><strong>Security Logging:</strong> Audit trail for security violations</li>
+            </ul>
+        </div>
+        
+        <h3>📊 Performance Characteristics</h3>
+        <div class="code">
+Thread Pool Configuration:
+- Workers: 10 (configurable)
+- Queue Size: 32 (configurable)
+- Timeout: 0.1s (queue submission)
+- Max Requests/Connection: 100
+- Idle Timeout: 30s
+
+Memory Usage:
+- Minimal memory footprint
+- Efficient binary file serving
+- Atomic file operations for uploads
+        </div>
+        
+        <h3>🧪 Testing</h3>
+        <p>The server includes comprehensive test suites:</p>
+        <ul>
+            <li><strong>Unit Tests:</strong> Individual component testing</li>
+            <li><strong>Integration Tests:</strong> End-to-end functionality testing</li>
+            <li><strong>Load Tests:</strong> Thread pool saturation testing</li>
+            <li><strong>Security Tests:</strong> Vulnerability testing</li>
+            <li><strong>Connection Tests:</strong> Keep-alive and timeout testing</li>
+        </ul>
+        
+        <div class="nav">
+            <a href="/">Home</a>
+            <a href="/about.html">About</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/sample.txt">Sample Text</a>
+            <a href="/logo.png">Logo</a>
+        </div>
+    </div>
+</body>
+</html>
