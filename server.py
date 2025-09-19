@@ -24,7 +24,7 @@ from server_lib.http_parser import (
     BadRequestError,
     HeaderTooLargeError,
 )
-from server_lib.response import build_response, make_error_response
+from server_lib.response import build_response, make_error_response, make_method_not_allowed_response, make_service_unavailable_response
 from server_lib.security import (
     safe_resolve_path,
     validate_host_header,
@@ -74,9 +74,22 @@ def ensure_directories() -> Path:
     return resources_dir
 
 
-def send_503(sock: socket.socket) -> None:
+def send_503(sock: socket.socket, client_addr: tuple[str, int]) -> None:
+    """Send 503 Service Unavailable response when thread pool is saturated.
+    
+    Args:
+        sock: Client socket to send response to
+        client_addr: Client address tuple (ip, port) for logging
+    """
+    logger = logging.getLogger("server")
     try:
-        sock.sendall(make_error_response(503, "Service Unavailable", "Service Unavailable", close=True))
+        # Send standardized 503 response with Retry-After header
+        response = make_service_unavailable_response(retry_after=5, close_connection=True)
+        sock.sendall(response)
+        logger.warning("503 Service Unavailable sent to %s:%d (thread pool saturated)", 
+                      client_addr[0], client_addr[1])
+    except Exception as e:
+        logger.error("Error sending 503 to %s:%d: %s", client_addr[0], client_addr[1], e)
     finally:
         sock.close()
 
@@ -87,10 +100,10 @@ def handle_get(path: str, headers: dict, resources_dir: Path, keep_alive: bool, 
     try:
         target = safe_resolve_path(req_path, resources_dir, client_addr)
     except ForbiddenError:
-        return make_error_response(403, "Forbidden", "Forbidden", close=not keep_alive)
+        return make_error_response(403, "Forbidden", "Forbidden", close_connection=not keep_alive)
 
     if not target.exists() or not target.is_file():
-        return make_error_response(404, "Not Found", "Not Found", close=not keep_alive)
+        return make_error_response(404, "Not Found", "Not Found", close_connection=not keep_alive)
 
     name = target.name
     ext = target.suffix.lower()
@@ -101,7 +114,7 @@ def handle_get(path: str, headers: dict, resources_dir: Path, keep_alive: bool, 
         content_type = "application/octet-stream"
         disposition = f"attachment; filename=\"{name}\""
     else:
-        return make_error_response(415, "Unsupported Media Type", "Unsupported file type", close=not keep_alive)
+        return make_error_response(415, "Unsupported Media Type", "Unsupported file type", close_connection=not keep_alive)
 
     data = target.read_bytes()
     headers_out = {"Content-Type": content_type}
@@ -116,17 +129,17 @@ def handle_get(path: str, headers: dict, resources_dir: Path, keep_alive: bool, 
 def handle_post(path: str, headers: dict, body_bytes: bytes, resources_dir: Path, keep_alive: bool) -> bytes:
     content_type = headers.get("content-type", "").split(";")[0].strip()
     if content_type != "application/json":
-        return make_error_response(415, "Unsupported Media Type", "Only application/json accepted", close=not keep_alive)
+        return make_error_response(415, "Unsupported Media Type", "Only application/json accepted", close_connection=not keep_alive)
 
     # Only allow /upload path in this iteration
     if path.rstrip("/") != "/upload":
-        return make_error_response(404, "Not Found", "Not Found", close=not keep_alive)
+        return make_error_response(404, "Not Found", "Not Found", close_connection=not keep_alive)
 
     # Parse JSON
     try:
         obj = json.loads(body_bytes.decode("utf-8"))
     except Exception:
-        return make_error_response(400, "Bad Request", "Invalid JSON", close=not keep_alive)
+        return make_error_response(400, "Bad Request", "Invalid JSON", close_connection=not keep_alive)
 
     uploads_dir = resources_dir / "uploads"
     uploads_dir.mkdir(parents=True, exist_ok=True)
@@ -183,7 +196,7 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
             try:
                 raw, leftover = receive_http_request(sock)
             except (BadRequestError, HeaderTooLargeError) as e:
-                sock.sendall(make_error_response(400, "Bad Request", str(e), close=True))
+                sock.sendall(make_error_response(400, "Bad Request", str(e), close_connection=True))
                 break
             except socket.timeout:
                 # Idle timeout; close connection
@@ -198,10 +211,10 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
             try:
                 validate_host_header(headers, server_host, server_port, client_addr)
             except HostMissingError:
-                sock.sendall(make_error_response(400, "Bad Request", "Missing Host header", close=True))
+                sock.sendall(make_error_response(400, "Bad Request", "Missing Host header", close_connection=True))
                 break
             except HostMismatchError:
-                sock.sendall(make_error_response(403, "Forbidden", "Host mismatch", close=True))
+                sock.sendall(make_error_response(403, "Forbidden", "Host mismatch", close_connection=True))
                 break
 
             logger.info("%s %s %s from %s:%d (req #%d)", method, path, version, addr[0], addr[1], requests_handled + 1)
@@ -216,7 +229,7 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
                 keep_alive = connection_header != "close"
 
             if method not in {"GET", "POST"}:
-                resp = make_error_response(405, "Method Not Allowed", "Only GET and POST supported", close=not keep_alive)
+                resp = make_method_not_allowed_response(["GET", "POST"], close_connection=not keep_alive)
                 sock.sendall(resp)
                 if not keep_alive:
                     break
@@ -236,7 +249,7 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
                 try:
                     content_length = int(headers.get("content-length", "0"))
                 except ValueError:
-                    sock.sendall(make_error_response(400, "Bad Request", "Invalid Content-Length", close=not keep_alive))
+                    sock.sendall(make_error_response(400, "Bad Request", "Invalid Content-Length", close_connection=not keep_alive))
                     break
                 body = leftover
                 read_remaining = max(0, content_length - len(body))
@@ -308,9 +321,9 @@ def main(argv: list[str] | None = None) -> int:
             except OSError:
                 # Socket likely closed during shutdown
                 break
-            if not pool.try_submit(handle_client, conn, addr, resources_dir, args.host, args.port, timeout=0.01):
-                logger.warning("Queue full; returning 503 to %s:%d", addr[0], addr[1])
-                send_503(conn)
+            if not pool.try_submit(handle_client, conn, addr, resources_dir, args.host, args.port, timeout=0.1):
+                logger.warning("Thread pool queue full; rejecting connection from %s:%d", addr[0], addr[1])
+                send_503(conn, addr)
     except KeyboardInterrupt:
         logger.info("KeyboardInterrupt; initiating shutdown")
         _shutdown_event.set()

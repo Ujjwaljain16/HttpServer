@@ -21,12 +21,15 @@ class ThreadPool:
 
     def try_submit(self, fn: Callable[..., Any], *args, timeout: float = 0.0, **kwargs) -> bool:
         """Attempt to submit a task, return False if queue full within timeout."""
+        current_size = self._tasks.qsize()
+        self._logger.debug(f"Attempting to queue task, current queue size: {current_size}/{self._tasks.maxsize}")
+        
         try:
             self._tasks.put((fn, args, kwargs), timeout=timeout)
-            self._logger.debug(f"Task queued, queue size: {self._tasks.qsize()}")
+            self._logger.debug(f"Task queued successfully, queue size: {self._tasks.qsize()}")
             return True
         except Full:
-            self._logger.warning(f"Queue full, rejecting task")
+            self._logger.warning(f"Queue full (size: {current_size}/{self._tasks.maxsize}), rejecting task")
             return False
 
     def shutdown(self, wait: bool = True) -> None:
