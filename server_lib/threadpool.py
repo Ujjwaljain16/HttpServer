@@ -65,6 +65,7 @@ class ThreadPool:
                 # Check for sentinel (None function) indicating shutdown
                 if fn is None:
                     self._logger.debug(f"Worker {worker_name} received shutdown sentinel")
+                    self._tasks.task_done()  # Mark sentinel task as done
                     break
                     
                 self._logger.debug(f"Worker {worker_name} processing task, queue size: {self._tasks.qsize()}")
@@ -81,10 +82,9 @@ class ThreadPool:
                             pass
                 finally:
                     self._logger.debug(f"Worker {worker_name} task completed")
+                    self._tasks.task_done()  # Mark task as done after processing
                     
             except Empty:
                 continue
-            finally:
-                self._tasks.task_done()
         
         self._logger.debug(f"Worker {worker_name} shutting down")

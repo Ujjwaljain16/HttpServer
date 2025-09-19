@@ -145,12 +145,41 @@ def handle_post(path: str, headers: dict, body_bytes: bytes, resources_dir: Path
 
 
 def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Path, server_host: str, server_port: int) -> None:
+    """Handle a client connection with persistent connection support.
+    
+    State machine:
+    1. Set socket timeout (30s idle timeout)
+    2. Loop while under request limit (100) and not shutdown:
+       a. Read HTTP request headers
+       b. Parse and validate request
+       c. Determine keep-alive behavior
+       d. Process request (GET/POST)
+       e. Send response with appropriate Connection headers
+       f. Break if connection should close
+       g. Increment request counter
+    3. Close socket on exit
+    
+    Keep-alive rules:
+    - HTTP/1.1: default keep-alive (unless Connection: close)
+    - HTTP/1.0: default close (unless Connection: keep-alive)
+    - Max 100 requests per connection
+    - 30s idle timeout
+    """
     logger = logging.getLogger("server")
-    # Keep-alive simple handling
-    sock.settimeout(30.0)
+    
+    # Connection state
+    MAX_REQUESTS_PER_CONNECTION = 100
+    IDLE_TIMEOUT = 30.0
+    
+    # Set idle timeout for persistent connections
+    sock.settimeout(IDLE_TIMEOUT)
     requests_handled = 0
+    
+    logger.debug(f"Handling client {addr[0]}:{addr[1]}, max_requests={MAX_REQUESTS_PER_CONNECTION}, timeout={IDLE_TIMEOUT}s")
+    
     try:
-        while requests_handled < 100 and not _shutdown_event.is_set():
+        # Persistent connection loop
+        while requests_handled < MAX_REQUESTS_PER_CONNECTION and not _shutdown_event.is_set():
             try:
                 raw, leftover = receive_http_request(sock)
             except (BadRequestError, HeaderTooLargeError) as e:
@@ -158,9 +187,13 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
                 break
             except socket.timeout:
                 # Idle timeout; close connection
+                logger.debug(f"Client {addr[0]}:{addr[1]} idle timeout after {requests_handled} requests")
                 break
 
+            # Parse request
             method, path, version, headers = parse_http_request(raw)
+            
+            # Validate Host header
             try:
                 validate_host_header(headers, server_host, server_port)
             except HostMissingError:
@@ -170,9 +203,16 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
                 sock.sendall(make_error_response(403, "Forbidden", "Host mismatch", close=True))
                 break
 
-            logger.info("%s %s %s from %s:%d", method, path, version, addr[0], addr[1])
+            logger.info("%s %s %s from %s:%d (req #%d)", method, path, version, addr[0], addr[1], requests_handled + 1)
 
-            keep_alive = not (headers.get("connection", "").lower() == "close" or version == "HTTP/1.0")
+            # Determine keep-alive behavior
+            # HTTP/1.1: default keep-alive (unless Connection: close)
+            # HTTP/1.0: default close (unless Connection: keep-alive)
+            connection_header = headers.get("connection", "").lower()
+            if version == "HTTP/1.0":
+                keep_alive = connection_header == "keep-alive"
+            else:  # HTTP/1.1
+                keep_alive = connection_header != "close"
 
             if method not in {"GET", "POST"}:
                 resp = make_error_response(405, "Method Not Allowed", "Only GET and POST supported", close=not keep_alive)
@@ -214,8 +254,13 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
                 requests_handled += 1
                 continue
 
-        # End while keep-alive
+        # End persistent connection loop
+        logger.debug(f"Client {addr[0]}:{addr[1]} connection closed after {requests_handled} requests")
+        
+    except Exception as e:
+        logger.error(f"Error handling client {addr[0]}:{addr[1]}: {e}")
     finally:
+        # Always close socket
         try:
             sock.close()
         except Exception:
