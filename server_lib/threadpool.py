@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from server_lib.logger import get_logger
 import threading
 from queue import Queue, Full, Empty
 from threading import Thread, Event
@@ -13,10 +14,12 @@ class ThreadPool:
     def __init__(self, num_workers: int = 4, queue_max: int = 64):
         self._tasks: Queue[tuple[Callable[..., Any], tuple, dict]] = Queue(maxsize=queue_max)
         self._stop = Event()
-        self._logger = logging.getLogger("threadpool")
+        self._logger = get_logger()
         self._workers = [Thread(target=self._worker, daemon=True, name=f"worker-{i}") for i in range(num_workers)]
         for w in self._workers:
             w.start()
+            # Register worker thread with logger
+            self._logger.register_thread(w.name, "worker", {"queue_max": queue_max})
         self._logger.info(f"Thread pool started with {num_workers} workers, queue max={queue_max}")
 
     def try_submit(self, fn: Callable[..., Any], *args, timeout: float = 0.0, **kwargs) -> bool:
@@ -53,6 +56,9 @@ class ThreadPool:
                 w.join(timeout=2.0)  # Give workers 2 seconds to finish
                 if w.is_alive():
                     self._logger.warning(f"Worker {w.name} did not shut down gracefully")
+                else:
+                    # Unregister worker thread
+                    self._logger.unregister_thread(w.name)
         
         self._logger.info("Thread pool shutdown complete")
 
@@ -72,6 +78,7 @@ class ThreadPool:
                     break
                     
                 self._logger.debug(f"Worker {worker_name} processing task, queue size: {self._tasks.qsize()}")
+                self._logger.update_thread_status(worker_name, "busy", {"queue_size": self._tasks.qsize()})
                 
                 try:
                     fn(*args, **kwargs)
@@ -84,6 +91,7 @@ class ThreadPool:
                         except Exception:
                             pass
                 finally:
+                    self._logger.update_thread_status(worker_name, "idle")
                     self._logger.debug(f"Worker {worker_name} task completed")
                     self._tasks.task_done()  # Mark task as done after processing
                     

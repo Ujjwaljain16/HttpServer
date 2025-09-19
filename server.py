@@ -9,11 +9,13 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+from server_lib.logger import setup_logging, get_logger, log_thread_status
 import os
 import secrets
 import socket
 import signal
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple
@@ -81,15 +83,16 @@ def send_503(sock: socket.socket, client_addr: tuple[str, int]) -> None:
         sock: Client socket to send response to
         client_addr: Client address tuple (ip, port) for logging
     """
-    logger = logging.getLogger("server")
+    logger = get_logger()
     try:
         # Send standardized 503 response with Retry-After header
         response = make_service_unavailable_response(retry_after=5, close_connection=True)
         sock.sendall(response)
         logger.warning("503 Service Unavailable sent to %s:%d (thread pool saturated)", 
-                      client_addr[0], client_addr[1])
+                      extra_data={"client_ip": client_addr[0], "client_port": client_addr[1]})
     except Exception as e:
-        logger.error("Error sending 503 to %s:%d: %s", client_addr[0], client_addr[1], e)
+        logger.error("Error sending 503 to %s:%d: %s", 
+                    extra_data={"client_ip": client_addr[0], "client_port": client_addr[1], "error": str(e)})
     finally:
         sock.close()
 
@@ -178,7 +181,7 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
     - Max 100 requests per connection
     - 30s idle timeout
     """
-    logger = logging.getLogger("server")
+    logger = get_logger()
     
     # Connection state
     MAX_REQUESTS_PER_CONNECTION = 100
@@ -284,8 +287,8 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(threadName)s] %(message)s")
-    logger = logging.getLogger("server")
+    # Setup enhanced logging
+    logger = setup_logging(level=logging.INFO)
 
     # Register Ctrl+C handler to set shutdown event (more reliable on Windows)
     try:
@@ -300,6 +303,9 @@ def main(argv: list[str] | None = None) -> int:
         f"Parsed args: port={args.port}, host={args.host}, thread_pool_size={args.thread_pool_size}"
     )
 
+    # Register main thread
+    logger.register_thread("MainThread", "main", {"port": args.port, "host": args.host})
+    
     logger.info("HTTP Server started on http://%s:%d", args.host, args.port)
     logger.info("Thread pool size: %d", args.thread_pool_size)
 
@@ -312,11 +318,20 @@ def main(argv: list[str] | None = None) -> int:
     server_sock.settimeout(1.0)  # short timeout to allow shutdown polling
     logger.info("Listening backlog: 50")
 
+    # Add periodic thread status logging
+    last_status_log = time.time()
+    STATUS_LOG_INTERVAL = 30.0  # Log thread status every 30 seconds
+
     try:
         while not _shutdown_event.is_set():
             try:
                 conn, addr = server_sock.accept()
             except socket.timeout:
+                # Log thread status periodically
+                current_time = time.time()
+                if current_time - last_status_log >= STATUS_LOG_INTERVAL:
+                    log_thread_status()
+                    last_status_log = current_time
                 continue
             except OSError:
                 # Socket likely closed during shutdown

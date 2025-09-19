@@ -1,0 +1,23 @@
+{"timestamp": "2025-09-19T17:42:34.372302Z", "thread_name": "MainThread", "level": "INFO", "message": "Server starting up", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.373064Z", "thread_name": "MainThread", "level": "WARNING", "message": "This is a warning message", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.375476Z", "thread_name": "MainThread", "level": "ERROR", "message": "This is an error message", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.376488Z", "thread_name": "MainThread", "level": "DEBUG", "message": "Debug information: server configuration loaded", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.377487Z", "thread_name": "MainThread", "level": "INFO", "message": "Server listening on 127.0.0.1:8080", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.377487Z", "thread_name": "MainThread", "level": "WARNING", "message": "Thread pool queue at 75% capacity", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.378485Z", "thread_name": "MainThread", "level": "ERROR", "message": "Failed to process request from 192.168.1.100: Connection timeout", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.379484Z", "thread_name": "MainThread", "level": "INFO", "message": "Request processed", "logger": "server", "method": "GET", "path": "/", "status": 200, "response_time": 0.05}
+{"timestamp": "2025-09-19T17:42:34.379484Z", "thread_name": "MainThread", "level": "WARNING", "message": "High memory usage detected", "logger": "server", "memory_usage": "85%", "thread_count": 8, "queue_size": 15}
+{"timestamp": "2025-09-19T17:42:34.379484Z", "thread_name": "MainThread", "level": "INFO", "message": "Thread status: 1/4 active", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.380482Z", "thread_name": "MainThread", "level": "DEBUG", "message": "Thread MainThread: main - active (uptime: 0.0s)", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.380482Z", "thread_name": "MainThread", "level": "DEBUG", "message": "Thread worker-1: worker - busy (uptime: 0.0s)", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.380482Z", "thread_name": "MainThread", "level": "DEBUG", "message": "Thread worker-2: worker - idle (uptime: 0.0s)", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.380482Z", "thread_name": "MainThread", "level": "DEBUG", "message": "Thread worker-3: worker - busy (uptime: 0.0s)", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.382483Z", "thread_name": "Thread-1 (worker_task)", "level": "INFO", "message": "Worker 0 starting task", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.382483Z", "thread_name": "Thread-2 (worker_task)", "level": "INFO", "message": "Worker 1 starting task", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.383485Z", "thread_name": "Thread-3 (worker_task)", "level": "INFO", "message": "Worker 2 starting task", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.483078Z", "thread_name": "Thread-1 (worker_task)", "level": "INFO", "message": "Worker 0 completed task", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.483590Z", "thread_name": "Thread-3 (worker_task)", "level": "INFO", "message": "Worker 2 completed task", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.483590Z", "thread_name": "Thread-2 (worker_task)", "level": "INFO", "message": "Worker 1 completed task", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.483590Z", "thread_name": "MainThread", "level": "INFO", "message": "Thread status: 1/2 active", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.483590Z", "thread_name": "MainThread", "level": "DEBUG", "message": "Thread MainThread: main - active (uptime: 0.1s)", "logger": "server"}
+{"timestamp": "2025-09-19T17:42:34.483590Z", "thread_name": "MainThread", "level": "DEBUG", "message": "Thread worker-3: worker - busy (uptime: 0.1s)", "logger": "server"}
