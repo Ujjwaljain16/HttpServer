@@ -119,7 +119,22 @@ def handle_get(path: str, headers: dict, resources_dir: Path, keep_alive: bool, 
     else:
         return make_error_response(415, "Unsupported Media Type", "Unsupported file type", close_connection=not keep_alive)
 
+    # For large files (>1MB), use chunked reading to avoid memory issues
+    file_size = target.stat().st_size
+    if file_size > 1024 * 1024:  # 1MB threshold
+        # For very large files, we could implement streaming here
+        # For now, we'll still read into memory but log the size
+        logger = get_logger()
+        logger.info(f"Serving large file: {name} ({file_size} bytes)")
+    
+    # Read file data
     data = target.read_bytes()
+    
+    # Validate file integrity for large files (simple size check)
+    if len(data) != file_size:
+        logger = get_logger()
+        logger.error(f"File size mismatch: expected {file_size}, got {len(data)} bytes for {name}")
+        return make_error_response(500, "Internal Server Error", "File integrity error", close_connection=not keep_alive)
     headers_out = {"Content-Type": content_type}
     if disposition:
         headers_out["Content-Disposition"] = disposition

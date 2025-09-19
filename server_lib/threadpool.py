@@ -16,6 +16,12 @@ class ThreadPool:
         self._stop = Event()
         self._logger = get_logger()
         self._workers = [Thread(target=self._worker, daemon=True, name=f"worker-{i}") for i in range(num_workers)]
+        
+        # Thread-safe counters
+        self._lock = threading.Lock()
+        self._tasks_completed = 0
+        self._tasks_failed = 0
+        
         for w in self._workers:
             w.start()
             # Register worker thread with logger
@@ -61,6 +67,17 @@ class ThreadPool:
                     self._logger.unregister_thread(w.name)
         
         self._logger.info("Thread pool shutdown complete")
+    
+    def get_stats(self) -> dict:
+        """Get thread pool statistics in a thread-safe manner."""
+        with self._lock:
+            return {
+                "tasks_completed": self._tasks_completed,
+                "tasks_failed": self._tasks_failed,
+                "queue_size": self._tasks.qsize(),
+                "queue_max": self._tasks.maxsize,
+                "workers_active": len([w for w in self._workers if w.is_alive()])
+            }
 
     def _worker(self) -> None:
         """Worker loop that processes tasks from the queue until shutdown."""
@@ -82,8 +99,14 @@ class ThreadPool:
                 
                 try:
                     fn(*args, **kwargs)
+                    # Thread-safe counter update
+                    with self._lock:
+                        self._tasks_completed += 1
                 except Exception as e:
                     self._logger.error(f"Worker {worker_name} task failed: {e}")
+                    # Thread-safe counter update
+                    with self._lock:
+                        self._tasks_failed += 1
                     # Ensure any socket connections are closed on exception
                     if len(args) > 0 and hasattr(args[0], 'close'):
                         try:
