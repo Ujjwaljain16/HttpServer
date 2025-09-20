@@ -30,19 +30,22 @@ This project showcases **enterprise-level software development skills** through 
 
 ## 🎯 Live Demo
 
-**See it in action!** Run the interactive demo to showcase all features:
+**See it in action!** Run the comprehensive test suite to showcase all features:
 
 ```bash
 # Start the server
 python server.py 8080 127.0.0.1 4
 
-# Run the portfolio demonstration
-python demo_showcase.py
+# Run the comprehensive test suite
+python final_demo_test.py
+
+# Run quick functionality test
+python quick_test.py
 ```
 
 **Demo Output:**
 ```
-🎬 PORTFOLIO DEMO - Multi-threaded HTTP Server
+🎬 COMPREHENSIVE TEST SUITE - Multi-threaded HTTP Server
 ============================================================
 ✅ Homepage Response: 200
 ✅ Binary File Serving: 200 (73 bytes)
@@ -193,15 +196,21 @@ curl -H "Origin: http://localhost:3000" http://127.0.0.1:8080/
 python test_advanced_features.py
 ```
 
+## 📖 Documentation
+
+This project includes comprehensive documentation:
+
+- **[Technical Documentation](TECHNICAL_DOCUMENTATION.md)** - Implementation details, architecture, and technical specifications
+- **[Theoretical Documentation](THEORETICAL_DOCUMENTATION.md)** - Concepts, principles, and theory behind the implementation
+- **[Requirements Checklist](REQUIREMENTS_CHECKLIST.md)** - Complete requirements verification
+- **[API Documentation](#api-endpoints)** - Endpoint specifications and examples
+
 ## 🧪 Testing
 
 ### Run All Tests
 ```bash
 # Comprehensive test suite (28 tests)
 python final_demo_test.py
-
-# Portfolio demonstration
-python demo_showcase.py
 
 # Quick functionality test
 python quick_test.py
@@ -225,28 +234,44 @@ python quick_test.py
 ## 📁 Project Structure
 
 ```
-├── server.py                 # Main server entry point
-├── server_lib/              # Core server modules
-│   ├── http_parser.py       # HTTP request parsing
-│   ├── threadpool.py        # Thread pool implementation
-│   ├── security.py          # Security and validation
-│   ├── response.py          # HTTP response building
-│   ├── logger.py            # Enhanced logging system
-│   └── utils.py             # Utility functions
-├── resources/               # Static files and samples
-│   ├── index.html           # Professional homepage
-│   ├── about.html           # Technical documentation
-│   ├── contact.html         # Interactive API testing
-│   ├── *.png, *.jpg         # Sample images
-│   ├── *.txt, *.json        # Sample files
-│   └── uploads/             # POST upload directory
-├── tests/                   # Comprehensive test suite
-│   ├── integration_test.py  # Integration tests
-│   ├── test_*.py            # Unit tests
-│   └── verify_all.py        # Quick verification
-├── final_demo_test.py       # Comprehensive test suite
-├── quick_test.py            # Quick functionality test
-└── README.md                # This file
+├── server.py                      # Main server entry point
+├── server_lib/                    # Core server modules
+│   ├── __init__.py               # Package initialization
+│   ├── http_parser.py            # HTTP request parsing
+│   ├── threadpool.py             # Thread pool implementation
+│   ├── security.py               # Security and validation
+│   ├── response.py               # HTTP response building
+│   ├── logger.py                 # Enhanced logging system
+│   ├── metrics.py                # Performance metrics collection
+│   ├── metrics_endpoint.py       # Metrics API endpoint
+│   ├── rate_limiter.py           # Rate limiting implementation
+│   ├── request_limiter.py        # Request size limiting
+│   ├── cors.py                   # CORS support
+│   ├── security_dashboard.py     # Security monitoring dashboard
+│   ├── connection_pool.py        # Connection pooling
+│   └── utils.py                  # Utility functions
+├── resources/                     # Static files and samples
+│   ├── index.html                # Professional homepage
+│   ├── about.html                # Technical documentation
+│   ├── contact.html              # Interactive API testing
+│   ├── logo.png                  # Logo image
+│   ├── photo.jpg, photo2.jpg     # Sample images
+│   ├── big.png                   # Large image for testing
+│   ├── readme.txt                # Text file for testing
+│   ├── sample.txt                # Sample text file
+│   ├── sample_data.json          # Sample JSON data
+│   ├── simple_test.json          # Test JSON file
+│   ├── test_payload.json         # Test payload
+│   └── uploads/                  # POST upload directory
+│       └── upload_*.json         # Uploaded files
+├── final_demo_test.py            # Comprehensive test suite (28 tests)
+├── quick_test.py                 # Quick functionality test
+├── requirements.txt              # Python dependencies
+├── REQUIREMENTS_CHECKLIST.md     # Requirements verification
+├── TECHNICAL_DOCUMENTATION.md    # Technical implementation docs
+├── THEORETICAL_DOCUMENTATION.md  # Theoretical concepts docs
+├── security.log                  # Security violation logs
+└── README.md                     # This file
 ```
 
 ## 🌐 API Endpoints
@@ -256,8 +281,17 @@ python quick_test.py
 | `GET` | `/` | Homepage with features showcase | 200 OK |
 | `GET` | `/about.html` | Technical documentation | 200 OK |
 | `GET` | `/contact.html` | Interactive API testing | 200 OK |
-| `GET` | `/sample.txt` | Text file download | 200 OK |
-| `GET` | `/logo.png` | Binary image file | 200 OK |
+| `GET` | `/readme.txt` | Text file download | 200 OK |
+| `GET` | `/sample.txt` | Sample text file | 200 OK |
+| `GET` | `/logo.png` | Logo image file | 200 OK |
+| `GET` | `/photo.jpg` | Sample image | 200 OK |
+| `GET` | `/photo2.jpg` | Sample image | 200 OK |
+| `GET` | `/big.png` | Large image for testing | 200 OK |
+| `GET` | `/sample_data.json` | Sample JSON data | 200 OK |
+| `GET` | `/simple_test.json` | Test JSON file | 200 OK |
+| `GET` | `/test_payload.json` | Test payload | 200 OK |
+| `GET` | `/metrics` | Performance metrics | 200 OK |
+| `GET` | `/security-dashboard` | Security monitoring | 200 OK |
 | `POST` | `/upload` | JSON data upload | 201 Created |
 
 ### Example Usage
@@ -266,12 +300,24 @@ python quick_test.py
 # Get homepage
 curl http://127.0.0.1:8080/
 
-# Download file
+# Download text file
+curl -O http://127.0.0.1:8080/readme.txt
+
+# Download image
 curl -O http://127.0.0.1:8080/logo.png
+
+# Get JSON data
+curl http://127.0.0.1:8080/sample_data.json
 
 # Upload JSON
 curl -X POST -H "Content-Type: application/json" \
      -d '{"test": "data"}' http://127.0.0.1:8080/upload
+
+# Get metrics
+curl http://127.0.0.1:8080/metrics
+
+# View security dashboard
+curl http://127.0.0.1:8080/security-dashboard
 
 # Test security (should return 403)
 curl http://127.0.0.1:8080/../etc/passwd
@@ -387,14 +433,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📈 Project Metrics
 
-- **Lines of Code**: 2,500+ (including tests and documentation)
+- **Lines of Code**: 3,000+ (including tests and documentation)
 - **Test Coverage**: 100% (28/28 tests passing)
 - **HTTP Status Codes**: 8 different codes supported
 - **File Types**: HTML, JSON, PNG, JPEG, TXT
-- **Security Measures**: 8+ implemented
+- **Security Measures**: 10+ implemented
 - **Thread Pool**: Configurable with bounded queue
 - **Production Ready**: Enterprise-grade deployment
 - **Performance**: 500+ requests/second capability
+- **Documentation**: 3 comprehensive guides
+- **Modules**: 12 core server modules
+- **Upload Files**: 30+ test uploads generated
 
 ## 🎯 Portfolio & Contact
 
