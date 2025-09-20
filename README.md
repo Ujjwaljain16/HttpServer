@@ -8,9 +8,8 @@
 [![Performance](https://img.shields.io/badge/Performance-500%2B%20req%2Fs-orange.svg)](#performance)
 
 **A production-ready, multi-threaded HTTP/1.1 server built from scratch**  
-*Demonstrating advanced Python networking, concurrent programming, security implementation, and modern DevOps practices*
+*Demonstrating advanced Python networking, concurrent programming, security implementation*
 
-[📖 Documentation](#documentation) • [🚀 Quick Start](#quick-start) • [🎯 Demo](#live-demo) • [📊 Features](#features)
 
 </div>
 
@@ -38,25 +37,9 @@ python server.py 8080 127.0.0.1 4
 
 # Run the comprehensive test suite
 python final_demo_test.py
-
-# Run quick functionality test
-python quick_test.py
 ```
 
 **Demo Output:**
-```
-🎬 COMPREHENSIVE TEST SUITE - Multi-threaded HTTP Server
-============================================================
-✅ Homepage Response: 200
-✅ Binary File Serving: 200 (73 bytes)
-✅ JSON Upload: 201
-✅ Path Traversal Protection: BLOCKED
-✅ Host Header Validation: BLOCKED
-✅ Concurrent Requests: 10/10 successful
-✅ Average Response Time: 24.12ms
-✅ Throughput: 180.07 req/s
-```
-
 **Screenshots:**
 <img width="1729" height="785" alt="Screenshot 2025-09-20 165751" src="https://github.com/user-attachments/assets/4b958797-2b0c-404c-b582-b263341a2084" />
 <img width="1668" height="853" alt="Screenshot 2025-09-20 165806" src="https://github.com/user-attachments/assets/4274310c-f9f1-4e0a-b0f5-63701fe36f47" />
@@ -198,34 +181,7 @@ This project includes comprehensive documentation:
 
 - **[Technical Documentation](TECHNICAL_DOCUMENTATION.md)** - Implementation details, architecture, and technical specifications
 - **[Theoretical Documentation](THEORETICAL_DOCUMENTATION.md)** - Concepts, principles, and theory behind the implementation
-- **[Requirements Checklist](REQUIREMENTS_CHECKLIST.md)** - Complete requirements verification
-- **[API Documentation](#api-endpoints)** - Endpoint specifications and examples
 
-## 🧪 Testing
-
-### Run All Tests
-```bash
-# Comprehensive test suite (28 tests)
-python final_demo_test.py
-
-# Quick functionality test
-python quick_test.py
-```
-
-### Test Coverage
-- **Comprehensive Tests**: 28/28 tests passing (100% pass rate)
-- **Security Tests**: Path traversal, Host header validation, rate limiting
-- **Performance Tests**: Concurrent requests, load testing, throughput
-- **Integration Tests**: End-to-end functionality testing
-- **Deployment Tests**: Production deployment testing
-
-### Test Results
-```
-🎉 ALL TESTS PASSED! Server is working perfectly!
-✅ Ready for production use!
-✅ All requirements fulfilled!
-✅ Advanced features working!
-```
 
 ## 📁 Project Structure
 
@@ -328,146 +284,12 @@ python server.py [port] [host] [thread_pool_size]
 
 - `port`: Server port (default: 8080)
 - `host`: Server host (default: 127.0.0.1)
-- `thread_pool_size`: Number of worker threads (default: 10)
+- `thread_pool_size`: Number of worker threads (default: 10
 
-### Environment Variables
-- `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
-- `LOG_FILE`: Log file path (optional)
-- `JSON_LOG_FILE`: JSON log file path (optional)
-
-## 🏗️ Architecture
-
-### Core Components
-- **Socket Programming**: Low-level TCP socket handling
-- **Thread Pool**: Fixed-size worker thread pool with bounded queue
-- **HTTP Parser**: Manual HTTP/1.1 request parsing
-- **Security Layer**: Path traversal protection and Host header validation
-- **Response Builder**: Standardized HTTP response generation
-- **Logging System**: Comprehensive logging with thread tracking
-
-### Request Flow
-1. **Accept**: Main thread accepts incoming connections
-2. **Queue**: Connection queued to thread pool
-3. **Process**: Worker thread processes request
-4. **Parse**: HTTP request parsed manually
-5. **Validate**: Security checks performed
-6. **Handle**: Request handled (GET/POST)
-7. **Respond**: HTTP response sent
-8. **Log**: Request logged with metrics
-
-## 🔒 Security
-
-### Path Traversal Protection
-- Blocks `../` and `..\` sequences
-- Prevents percent-encoded attacks (`%2e%2e%2f`)
-- Validates resolved paths within resources directory
-- Logs security violations with client IP
-
-### Host Header Validation
-- Requires Host header for all requests
-- Validates Host header matches server configuration
-- Supports localhost and 127.0.0.1 variations
-- Prevents Host header injection attacks
-
-### Input Validation
-- JSON content-type validation for POST requests
-- Content-Length header validation
-- Request size limits and timeout handling
-- Malformed request detection and logging
-
-## 📊 Performance
-
-### Thread Pool
-- **Fixed Size**: Configurable number of worker threads
-- **Bounded Queue**: Prevents memory exhaustion
-- **Graceful Shutdown**: Proper cleanup on exit
-- **Load Balancing**: Fair distribution of requests
-
-### Connection Management
-- **Keep-Alive**: HTTP/1.1 persistent connections
-- **Timeout Handling**: 30-second idle timeout
-- **Request Limits**: 100 requests per connection
-- **Resource Cleanup**: Proper socket closure
-
-### Monitoring
-- **Thread Status**: Real-time thread monitoring
-- **Request Metrics**: Response times and throughput
-- **Error Tracking**: Detailed error logging
-- **Performance Logs**: JSON-structured metrics
-
-## 🚀 Production Deployment
-
-```bash
-# Run with custom configuration
-python server.py 8080 0.0.0.0 20
-
-# Run as a service (Linux/Mac)
-nohup python server.py 8080 0.0.0.0 20 &
-
-# Run with process manager (PM2)
-pm2 start server.py --name "http-server" --interpreter python -- 8080 0.0.0.0 20
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with Python's standard library
-- Inspired by modern web server architectures
-- Security practices based on OWASP guidelines
-- Testing approach follows industry best practices
-
-## 📈 Project Metrics
-
-- **Lines of Code**: 3,000+ (including tests and documentation)
-- **Test Coverage**: 100% (28/28 tests passing)
-- **HTTP Status Codes**: 8 different codes supported
-- **File Types**: HTML, JSON, PNG, JPEG, TXT
-- **Security Measures**: 10+ implemented
-- **Thread Pool**: Configurable with bounded queue
-- **Production Ready**: Enterprise-grade deployment
-- **Performance**: 500+ requests/second capability
-- **Documentation**: 3 comprehensive guides
-- **Modules**: 12 core server modules
-- **Upload Files**: 30+ test uploads generated
-
-## 🎯 Portfolio & Contact
-
-**Developer:** [@ujjwaljain16](https://github.com/ujjwaljain16)
-
-This project demonstrates:
-- **Advanced Python Programming** - System-level development
-- **Network Programming** - HTTP/1.1 protocol implementation
-- **Concurrent Programming** - Multi-threading and thread pools
-- **Security Engineering** - Attack prevention and monitoring
-- **DevOps Practices** - Production deployment and monitoring
-- **Quality Assurance** - Comprehensive testing and documentation
-
-**Perfect for:**
-- Technical interviews and portfolio demonstrations
-- Learning advanced Python concepts
-- Understanding web server architecture
-- Demonstrating full-stack development skills
-
----
-
+  ---
+ 
 <div align="center">
-
-**🚀 Built with ❤️ using Python's standard library**
-
-*Showcasing enterprise-level software development skills*
-
+     
 [![GitHub](https://img.shields.io/badge/GitHub-ujjwaljain16-black.svg)](https://github.com/ujjwaljain16)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
-
 </div>
