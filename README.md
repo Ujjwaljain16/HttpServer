@@ -35,24 +35,16 @@ This project showcases **enterprise-level software development skills** through 
 ```bash
 # Start the server
 python server.py 8080 127.0.0.1 4
-
-# Run the portfolio demonstration
-python demo_showcase.py
+python final_demo_test.py
 ```
 
 **Demo Output:**
-```
-🎬 PORTFOLIO DEMO - Multi-threaded HTTP Server
-============================================================
-✅ Homepage Response: 200
-✅ Binary File Serving: 200 (73 bytes)
-✅ JSON Upload: 201
-✅ Path Traversal Protection: BLOCKED
-✅ Host Header Validation: BLOCKED
-✅ Concurrent Requests: 10/10 successful
-✅ Average Response Time: 24.12ms
-✅ Throughput: 180.07 req/s
-```
+<img width="1729" height="785" alt="Screenshot 2025-09-20 165751" src="https://github.com/user-attachments/assets/4b958797-2b0c-404c-b582-b263341a2084" />
+<img width="1668" height="853" alt="Screenshot 2025-09-20 165806" src="https://github.com/user-attachments/assets/4274310c-f9f1-4e0a-b0f5-63701fe36f47" />
+<img width="1188" height="882" alt="Screenshot 2025-09-20 165817" src="https://github.com/user-attachments/assets/11c23cb2-f796-40fd-9405-b33f74e5f63e" />
+
+
+
 
 ## ✨ Key Features
 
@@ -106,7 +98,7 @@ python demo_showcase.py
 ```bash
 # Clone the repository
 git clone https://github.com/ujjwaljain16/multi-threaded-http-server.git
-cd multi-threaded-http-server
+
 
 # Install dependencies (optional - for monitoring features)
 pip install -r requirements.txt
@@ -119,15 +111,6 @@ python server.py
 
 # Custom configuration
 python server.py 9090 0.0.0.0 20
-```
-
-### Demo Scripts
-```bash
-# Comprehensive test suite (28 tests)
-python final_demo_test.py
-
-# Quick functionality test
-python quick_test.py
 ```
 
 ## 🎯 Skills Demonstrated
@@ -178,49 +161,6 @@ This project showcases **advanced software development skills** that are highly 
 - `GET /security-dashboard` - Security monitoring dashboard (HTML/JSON)
 - `OPTIONS /*` - CORS preflight support
 
-### Example Usage
-```bash
-# Get performance metrics
-curl http://127.0.0.1:8080/metrics
-
-# View security dashboard
-curl http://127.0.0.1:8080/security-dashboard
-
-# Test CORS
-curl -H "Origin: http://localhost:3000" http://127.0.0.1:8080/
-
-# Test advanced features
-python test_advanced_features.py
-```
-
-## 🧪 Testing
-
-### Run All Tests
-```bash
-# Comprehensive test suite (28 tests)
-python final_demo_test.py
-
-# Portfolio demonstration
-python demo_showcase.py
-
-# Quick functionality test
-python quick_test.py
-```
-
-### Test Coverage
-- **Comprehensive Tests**: 28/28 tests passing (100% pass rate)
-- **Security Tests**: Path traversal, Host header validation, rate limiting
-- **Performance Tests**: Concurrent requests, load testing, throughput
-- **Integration Tests**: End-to-end functionality testing
-- **Deployment Tests**: Production deployment testing
-
-### Test Results
-```
-🎉 ALL TESTS PASSED! Server is working perfectly!
-✅ Ready for production use!
-✅ All requirements fulfilled!
-✅ Advanced features working!
-```
 
 ## 📁 Project Structure
 
