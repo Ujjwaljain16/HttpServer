@@ -25,12 +25,20 @@ A professional-grade, multi-threaded HTTP/1.1 server built from scratch using Py
 - ✅ **Host Header Validation**: Prevents Host header injection attacks
 - ✅ **Input Sanitization**: JSON validation and content-type checking
 - ✅ **Security Logging**: Comprehensive audit trail for security violations
+- ✅ **Rate Limiting**: Per-IP rate limiting with burst protection
+- ✅ **Request Size Limiting**: DoS protection with configurable limits
+- ✅ **CORS Support**: Cross-origin resource sharing for web applications
+- ✅ **Security Dashboard**: Real-time attack monitoring and visualization
 
-### 📊 Advanced Logging
+### 📊 Advanced Logging & Monitoring
 - ✅ **Thread Tracking**: Real-time thread status monitoring
 - ✅ **JSON Logging**: Structured logging for analysis
 - ✅ **Security Audit**: Detailed security violation logging
 - ✅ **Performance Metrics**: Request timing and thread utilization
+- ✅ **Response Time Tracking**: Per-request performance monitoring
+- ✅ **Memory Monitoring**: System resource usage tracking (with psutil)
+- ✅ **Prometheus Metrics**: `/metrics` endpoint for monitoring systems
+- ✅ **Connection Pooling**: Efficient resource management
 
 ### 🧪 Comprehensive Testing
 - ✅ **Unit Tests**: 93+ tests with 97% pass rate
@@ -71,6 +79,35 @@ powershell -ExecutionPolicy Bypass -File demo.ps1
 bash demo.sh
 ```
 
+## 🔗 API Endpoints
+
+### Core Endpoints
+- `GET /` - Homepage (serves `index.html`)
+- `GET /about.html` - About page
+- `GET /contact.html` - Contact page
+- `GET /logo.png` - Logo image (download)
+- `POST /upload` - JSON file upload
+
+### Advanced Endpoints
+- `GET /metrics` - Performance metrics (JSON/Prometheus format)
+- `GET /security-dashboard` - Security monitoring dashboard (HTML/JSON)
+- `OPTIONS /*` - CORS preflight support
+
+### Example Usage
+```bash
+# Get performance metrics
+curl http://127.0.0.1:8080/metrics
+
+# View security dashboard
+curl http://127.0.0.1:8080/security-dashboard
+
+# Test CORS
+curl -H "Origin: http://localhost:3000" http://127.0.0.1:8080/
+
+# Test advanced features
+python test_advanced_features.py
+```
+
 ## 🧪 Testing
 
 ### Run All Tests
@@ -80,6 +117,9 @@ python -m pytest tests/ -v
 
 # Integration tests
 python tests/integration_test.py
+
+# Advanced features test
+python test_advanced_features.py
 
 # Quick verification
 python tests/verify_all.py

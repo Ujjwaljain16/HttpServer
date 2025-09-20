@@ -13,6 +13,7 @@ def build_response(
     reason: str,
     headers: Dict[str, str],
     body: bytes,
+    cors_headers: Dict[str, str] = None,
 ) -> bytes:
     lines = [f"HTTP/1.1 {status_code} {reason}"]
     # Required headers
@@ -23,6 +24,11 @@ def build_response(
     }
     # Merge headers (caller can override if needed)
     merged = {**base_headers, **headers}
+    
+    # Add CORS headers if provided
+    if cors_headers:
+        merged.update(cors_headers)
+    
     head = "\r\n".join(f"{k}: {v}" for k, v in merged.items())
     return (lines[0] + "\r\n" + head + "\r\n\r\n").encode("latin-1") + body
 
