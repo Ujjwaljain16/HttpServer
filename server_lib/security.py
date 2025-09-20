@@ -1,4 +1,15 @@
-"""Security helpers: safe path resolution and Host header validation."""
+"""
+Security Module
+
+This module provides security functions to protect the HTTP server from common attacks:
+- Path traversal protection (prevents access to files outside the web root)
+- Host header validation (prevents Host header injection attacks)
+- Input sanitization and validation
+- Security event logging
+
+These functions are critical for preventing malicious requests from compromising
+the server or accessing sensitive files.
+"""
 
 from __future__ import annotations
 
@@ -13,14 +24,17 @@ from urllib.parse import unquote
 
 
 class ForbiddenError(Exception):
+    """Raised when a request is forbidden due to security restrictions."""
     pass
 
 
 class HostMissingError(Exception):
+    """Raised when the required Host header is missing."""
     pass
 
 
 class HostMismatchError(Exception):
+    """Raised when the Host header doesn't match the server configuration."""
     pass
 
 

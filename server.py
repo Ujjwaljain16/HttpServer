@@ -1,21 +1,30 @@
-"""Entry point for the multi-threaded HTTP server.
+#!/usr/bin/env python3
+"""
+Multi-threaded HTTP Server
 
-Parses CLI arguments, prepares the environment, starts a TCP listener, and
-accepts connections, handing them to a bounded thread pool for handling.
+A production-ready HTTP/1.1 server built from scratch using Python's standard library.
+This server demonstrates advanced networking concepts, concurrent programming, and
+comprehensive security measures.
+
+Features:
+- Multi-threading with bounded thread pools
+- HTTP/1.1 persistent connections with keep-alive
+- Comprehensive security (path traversal protection, rate limiting, host validation)
+- Real-time monitoring and metrics collection
+- File serving (HTML, images, JSON uploads)
+- CORS support for web applications
+- Graceful shutdown handling
+
+Author: ujjwaljain16
+Version: 1.0.0
 """
 
 from __future__ import annotations
 
+# Standard library imports
 import argparse
 import json
 import logging
-from server_lib.logger import setup_logging, get_logger, log_thread_status
-from server_lib.metrics import record_request_metrics, get_metrics_collector
-from server_lib.metrics_endpoint import handle_metrics_request
-from server_lib.rate_limiter import check_rate_limit
-from server_lib.request_limiter import validate_request_size
-from server_lib.cors import add_cors_headers, handle_cors_preflight
-from server_lib.security_dashboard import handle_security_dashboard_request, record_security_event
 import os
 import secrets
 import socket
@@ -25,6 +34,15 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple
+
+# Our custom modules - organized by functionality
+from server_lib.logger import setup_logging, get_logger, log_thread_status
+from server_lib.metrics import record_request_metrics, get_metrics_collector
+from server_lib.metrics_endpoint import handle_metrics_request
+from server_lib.rate_limiter import check_rate_limit
+from server_lib.request_limiter import validate_request_size
+from server_lib.cors import add_cors_headers, handle_cors_preflight
+from server_lib.security_dashboard import handle_security_dashboard_request, record_security_event
 
 from server_lib.http_parser import (
     receive_http_request,
@@ -46,59 +64,100 @@ from server_lib.utils import generate_upload_filename
 
 def send_response_chunked(sock: socket.socket, response: bytes, chunk_size: int = 8192) -> None:
     """
-    Send response data in chunks to handle large files efficiently.
+    Send HTTP response data in manageable chunks.
+    
+    This prevents overwhelming the socket buffer when sending large files.
+    We break the response into 8KB chunks and send them one by one.
     
     Args:
-        sock: Socket to send data to
-        response: Complete response bytes to send
-        chunk_size: Size of each chunk (default 8KB)
+        sock: The client socket to send data to
+        response: The complete HTTP response as bytes
+        chunk_size: How big each chunk should be (8KB is a good default)
     """
     try:
-        # Send in chunks to avoid overwhelming the socket buffer
+        # Break the response into chunks and send them one by one
+        # This prevents memory issues with large files
         for i in range(0, len(response), chunk_size):
             chunk = response[i:i + chunk_size]
             sock.sendall(chunk)
+            
     except Exception as e:
+        # If sending fails, log the error and re-raise it
         logger = get_logger()
-        logger.error(f"Error sending response chunk: {e}")
+        logger.error(f"Failed to send response chunk: {e}")
         raise
 
 
+# Global shutdown event - when this is set, the server stops accepting new connections
 _shutdown_event = threading.Event()
 
 
 def _handle_sigint(signum, frame):
-    logging.getLogger("server").info("SIGINT received; initiating shutdown")
+    """
+    Handle SIGINT (Ctrl+C) signal for graceful shutdown.
+    
+    When the user presses Ctrl+C, we set the shutdown event instead of
+    immediately killing the server. This allows us to finish processing
+    current requests before shutting down.
+    """
+    logging.getLogger("server").info("SIGINT received; initiating graceful shutdown")
     _shutdown_event.set()
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """
+    Parse command line arguments for the HTTP server.
+    
+    The server accepts three optional positional arguments:
+    - port: Which TCP port to listen on (default: 8080)
+    - host: Which IP address to bind to (default: 127.0.0.1)
+    - thread_pool_size: How many worker threads to use (default: 10)
+    
+    Returns:
+        Parsed arguments as a namespace object
+    """
     parser = argparse.ArgumentParser(
         prog="server.py",
-        description=(
-            "Multi-threaded HTTP server. Optional positional args: port host thread_pool_size."
-        ),
+        description="Multi-threaded HTTP server with security and monitoring features",
         epilog=(
             "Examples:\n"
-            "  python server.py\n"
-            "  python server.py 9090\n"
-            "  python server.py 9090 0.0.0.0\n"
-            "  python server.py 9090 0.0.0.0 32\n"
+            "  python server.py                    # Default: localhost:8080, 10 threads\n"
+            "  python server.py 9090               # Port 9090, localhost, 10 threads\n"
+            "  python server.py 9090 0.0.0.0       # Port 9090, all interfaces, 10 threads\n"
+            "  python server.py 9090 0.0.0.0 32    # Port 9090, all interfaces, 32 threads\n"
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    parser.add_argument("port", nargs="?", type=int, default=8080, help="TCP port (default: 8080)")
-    parser.add_argument("host", nargs="?", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
-    parser.add_argument("thread_pool_size", nargs="?", type=int, default=10, help="Worker threads (default: 10)")
+    # All arguments are optional with sensible defaults
+    parser.add_argument("port", nargs="?", type=int, default=8080, 
+                       help="TCP port to listen on (default: 8080)")
+    parser.add_argument("host", nargs="?", default="127.0.0.1", 
+                       help="IP address to bind to (default: 127.0.0.1)")
+    parser.add_argument("thread_pool_size", nargs="?", type=int, default=10, 
+                       help="Number of worker threads (default: 10)")
 
     return parser.parse_args(argv)
 
 
 def ensure_directories() -> Path:
+    """
+    Create necessary directories for the server.
+    
+    We need a 'resources' directory for static files and an 'uploads'
+    directory for POST requests. This function creates them if they don't exist.
+    
+    Returns:
+        Path to the resources directory
+    """
     resources_dir = Path("resources")
     uploads_dir = resources_dir / "uploads"
+    
+    # Create directories if they don't exist
+    # parents=True means create parent directories too
+    # exist_ok=True means don't error if they already exist
     uploads_dir.mkdir(parents=True, exist_ok=True)
+    
     return resources_dir
 
 
@@ -441,23 +500,46 @@ def handle_client(sock: socket.socket, addr: Tuple[str, int], resources_dir: Pat
 
 
 def main(argv: list[str] | None = None) -> int:
+    """
+    Main entry point for the HTTP server.
+    
+    This function:
+    1. Parses command line arguments
+    2. Sets up logging and signal handlers
+    3. Creates necessary directories
+    4. Starts the server with a thread pool
+    5. Handles graceful shutdown
+    
+    Args:
+        argv: Command line arguments (for testing)
+        
+    Returns:
+        Exit code (0 for success, 1 for error)
+    """
+    # Parse command line arguments
     args = parse_args(argv)
 
-    # Setup enhanced logging
+    # Setup logging - we want INFO level by default
     logger = setup_logging(level=logging.INFO)
 
-    # Register Ctrl+C handler to set shutdown event (more reliable on Windows)
+    # Register signal handler for graceful shutdown
+    # This allows us to handle Ctrl+C properly
     try:
         signal.signal(signal.SIGINT, _handle_sigint)
     except Exception:
-        # Some environments may not allow setting signal handlers
+        # Some environments (like some IDEs) may not allow setting signal handlers
+        # That's okay, we'll just continue without graceful shutdown
         pass
 
+    # Make sure we have the directories we need
     resources_dir = ensure_directories()
 
-    print(
-        f"Parsed args: port={args.port}, host={args.host}, thread_pool_size={args.thread_pool_size}"
-    )
+    # Print startup information
+    print(f"🚀 Starting HTTP Server on {args.host}:{args.port}")
+    print(f"📁 Resources directory: {resources_dir}")
+    print(f"🧵 Thread pool size: {args.thread_pool_size}")
+    print(f"⏹️  Press Ctrl+C to stop the server")
+    print("-" * 50)
 
     # Register main thread
     logger.register_thread("MainThread", "main", {"port": args.port, "host": args.host})

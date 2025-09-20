@@ -1,9 +1,14 @@
-"""HTTP request parsing utilities.
+"""
+HTTP Request Parser
 
-- receive_http_request: read until CRLF CRLF; returns (headers, leftover)
-- parse_http_request: parse request line and headers into dict
+This module handles the low-level parsing of HTTP requests from raw socket data.
+It's responsible for:
+- Reading HTTP headers from a socket until we find the end marker
+- Parsing the request line (method, path, version)
+- Parsing individual headers into a dictionary
+- Handling different character encodings properly
 
-Headers are decoded using latin-1 as per RFC to preserve bytes safely.
+The parser follows HTTP/1.1 specification and includes basic security checks.
 """
 
 from __future__ import annotations
@@ -11,15 +16,18 @@ from __future__ import annotations
 import socket
 from typing import Dict, Tuple
 
-CRLF = b"\r\n"
-HEADER_TERMINATOR = b"\r\n\r\n"
+# HTTP protocol constants
+CRLF = b"\r\n"                    # Carriage return + line feed
+HEADER_TERMINATOR = b"\r\n\r\n"   # Marks the end of HTTP headers
 
 
 class BadRequestError(Exception):
+    """Raised when an HTTP request is malformed or invalid."""
     pass
 
 
 class HeaderTooLargeError(Exception):
+    """Raised when HTTP headers exceed the maximum allowed size."""
     pass
 
 
@@ -29,13 +37,25 @@ def receive_http_request(
     header_timeout: float | None = None,
     timeout: float | None = 2.0,
 ) -> Tuple[bytes, bytes]:
-    """Read from socket until header terminator or size exceeded.
-
-    Returns a tuple (raw_header_bytes_including_terminator, leftover_bytes_after_headers).
-
-    Parameters:
-    - header_timeout: deprecated alias; prefer 'timeout'
-    - timeout: seconds to wait for headers (default 2.0)
+    """
+    Read HTTP request from socket until we find the header terminator.
+    
+    This function reads data from the socket in chunks until it finds the
+    double CRLF that marks the end of HTTP headers. It also enforces a
+    maximum header size to prevent memory exhaustion attacks.
+    
+    Args:
+        sock: The socket to read from
+        max_header_size: Maximum size of headers in bytes (default: 8KB)
+        header_timeout: Deprecated - use 'timeout' instead
+        timeout: How long to wait for headers (default: 2 seconds)
+        
+    Returns:
+        Tuple of (header_bytes, body_bytes) - the raw bytes split at the header boundary
+        
+    Raises:
+        HeaderTooLargeError: If headers exceed max_header_size
+        BadRequestError: If the request is malformed
     """
     effective_timeout = timeout if timeout is not None else header_timeout
     if effective_timeout is None:

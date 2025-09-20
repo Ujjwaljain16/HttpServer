@@ -1,4 +1,16 @@
-"""Simple bounded thread pool for socket handling."""
+"""
+Thread Pool Implementation
+
+This module provides a bounded thread pool for handling HTTP requests concurrently.
+The thread pool uses a queue to distribute work among worker threads, preventing
+the server from being overwhelmed by too many simultaneous connections.
+
+Key features:
+- Bounded queue size to prevent memory exhaustion
+- Graceful shutdown handling
+- Thread-safe task counting and statistics
+- Integration with the logging system
+"""
 
 from __future__ import annotations
 
@@ -12,20 +24,37 @@ from typing import Callable, Any, Optional
 
 class ThreadPool:
     def __init__(self, num_workers: int = 4, queue_max: int = 64):
-        self._tasks: Queue[tuple[Callable[..., Any], tuple, dict]] = Queue(maxsize=queue_max)
-        self._stop = Event()
-        self._logger = get_logger()
-        self._workers = [Thread(target=self._worker, daemon=True, name=f"worker-{i}") for i in range(num_workers)]
+        """
+        Initialize the thread pool.
         
-        # Thread-safe counters
+        Args:
+            num_workers: Number of worker threads to create
+            queue_max: Maximum number of tasks that can be queued
+        """
+        # Task queue with bounded size to prevent memory exhaustion
+        self._tasks: Queue[tuple[Callable[..., Any], tuple, dict]] = Queue(maxsize=queue_max)
+        
+        # Event to signal all workers to stop
+        self._stop = Event()
+        
+        # Logger for this thread pool
+        self._logger = get_logger()
+        
+        # Create worker threads - they'll run in the background
+        self._workers = [Thread(target=self._worker, daemon=True, name=f"worker-{i}") 
+                        for i in range(num_workers)]
+        
+        # Thread-safe counters for statistics
         self._lock = threading.Lock()
         self._tasks_completed = 0
         self._tasks_failed = 0
         
+        # Start all worker threads
         for w in self._workers:
             w.start()
-            # Register worker thread with logger
+            # Register each worker with the logging system
             self._logger.register_thread(w.name, "worker", {"queue_max": queue_max})
+        
         self._logger.info(f"Thread pool started with {num_workers} workers, queue max={queue_max}")
 
     def try_submit(self, fn: Callable[..., Any], *args, timeout: float = 0.0, **kwargs) -> bool:
