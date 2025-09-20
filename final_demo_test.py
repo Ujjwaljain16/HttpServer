@@ -38,7 +38,7 @@ class FinalDemoTest:
         
     def log_test(self, test_name, success, details=""):
         """Log test result."""
-        status = "✅ PASS" if success else "❌ FAIL"
+        status = "PASS" if success else "FAIL"
         self.test_results.append((test_name, success, details))
         print(f"{status} {test_name}")
         if details:
@@ -46,13 +46,13 @@ class FinalDemoTest:
     
     def start_server(self):
         """Start the HTTP server."""
-        print("🚀 Starting HTTP Server...")
+        print("Starting HTTP Server...")
         
         # First check if server is already running
         try:
             response = requests.get(f"{self.base_url}/", timeout=2)
             if response.status_code == 200:
-                print("✅ Server is already running!")
+                print("Server is already running!")
                 return True
         except:
             pass  # Server not running, continue with startup
@@ -69,14 +69,14 @@ class FinalDemoTest:
                 try:
                     response = requests.get(f"{self.base_url}/", timeout=2)
                     if response.status_code == 200:
-                        print("✅ Server started successfully!")
+                        print("Server started successfully!")
                         return True
                 except:
                     continue
-            print("❌ Server failed to start within 10 seconds")
+            print("Server failed to start within 10 seconds")
             return False
         except Exception as e:
-            print(f"❌ Failed to start server: {e}")
+            print(f"Failed to start server: {e}")
             return False
     
     def stop_server(self):
@@ -88,7 +88,7 @@ class FinalDemoTest:
     def test_server_startup(self):
         """Test 1: Server startup and basic connectivity."""
         print("\n" + "="*60)
-        print("🧪 TEST 1: Server Startup and Basic Connectivity")
+        print("TEST 1: Server Startup and Basic Connectivity")
         print("="*60)
         
         try:
@@ -108,7 +108,7 @@ class FinalDemoTest:
     def test_basic_http_functionality(self):
         """Test 2: Basic HTTP GET and POST functionality."""
         print("\n" + "="*60)
-        print("🧪 TEST 2: Basic HTTP Functionality")
+        print("TEST 2: Basic HTTP Functionality")
         print("="*60)
         
         # Test GET requests
@@ -142,7 +142,7 @@ class FinalDemoTest:
     def test_security_features(self):
         """Test 3: Security features."""
         print("\n" + "="*60)
-        print("🧪 TEST 3: Security Features")
+        print("TEST 3: Security Features")
         print("="*60)
         
         # Path traversal protection
@@ -153,7 +153,7 @@ class FinalDemoTest:
                 # Accept both 403 (Forbidden) and 404 (Not Found) as valid security responses
                 is_secure = response.status_code in [403, 404]
                 self.log_test(f"Path Traversal {path}", is_secure, 
-                             f"Status: {response.status_code} (Blocked ✅)")
+                             f"Status: {response.status_code} (Blocked)")
             except Exception as e:
                 self.log_test(f"Path Traversal {path}", False, f"Error: {e}")
         
@@ -195,7 +195,7 @@ class FinalDemoTest:
     def test_advanced_monitoring(self):
         """Test 4: Advanced monitoring features."""
         print("\n" + "="*60)
-        print("🧪 TEST 4: Advanced Monitoring")
+        print("TEST 4: Advanced Monitoring")
         print("="*60)
         
         # Add small delay to avoid rate limiting
@@ -251,7 +251,7 @@ class FinalDemoTest:
     def test_error_handling(self):
         """Test 5: Error handling and status codes."""
         print("\n" + "="*60)
-        print("🧪 TEST 5: Error Handling")
+        print("TEST 5: Error Handling")
         print("="*60)
         
         # Add small delay to avoid rate limiting
@@ -292,7 +292,7 @@ class FinalDemoTest:
     def test_concurrent_performance(self):
         """Test 6: Concurrent performance and threading."""
         print("\n" + "="*60)
-        print("🧪 TEST 6: Concurrent Performance")
+        print("TEST 6: Concurrent Performance")
         print("="*60)
         
         def make_request(request_id):
@@ -339,7 +339,7 @@ class FinalDemoTest:
     def test_binary_file_serving(self):
         """Test 7: Binary file serving and downloads."""
         print("\n" + "="*60)
-        print("🧪 TEST 7: Binary File Serving")
+        print("TEST 7: Binary File Serving")
         print("="*60)
         
         # Add small delay to avoid rate limiting
@@ -378,7 +378,7 @@ class FinalDemoTest:
     def test_json_upload_processing(self):
         """Test 8: JSON upload and processing."""
         print("\n" + "="*60)
-        print("🧪 TEST 8: JSON Upload Processing")
+        print("TEST 8: JSON Upload Processing")
         print("="*60)
         
         # Add small delay to avoid rate limiting
@@ -426,14 +426,14 @@ class FinalDemoTest:
     
     def run_all_tests(self):
         """Run all tests and display results."""
-        print("🎬 FINAL DEMO TEST - Multi-threaded HTTP Server")
+        print("FINAL DEMO TEST - Multi-threaded HTTP Server")
         print("="*60)
         print("This comprehensive test demonstrates ALL features of the server.")
         print("="*60)
         
         # Start server
         if not self.start_server():
-            print("❌ Cannot start server. Please start manually and run again.")
+            print("Cannot start server. Please start manually and run again.")
             return False
         
         try:
@@ -456,7 +456,7 @@ class FinalDemoTest:
     def display_results(self):
         """Display test results summary."""
         print("\n" + "="*60)
-        print("📊 TEST RESULTS SUMMARY")
+        print("TEST RESULTS SUMMARY")
         print("="*60)
         
         total_tests = len(self.test_results)
@@ -464,24 +464,24 @@ class FinalDemoTest:
         failed_tests = total_tests - passed_tests
         
         print(f"Total Tests: {total_tests}")
-        print(f"Passed: {passed_tests} ✅")
-        print(f"Failed: {failed_tests} ❌")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
         if failed_tests > 0:
-            print("\n❌ FAILED TESTS:")
+            print("\nFAILED TESTS:")
             for test_name, success, details in self.test_results:
                 if not success:
                     print(f"  - {test_name}: {details}")
         
         print("\n" + "="*60)
         if failed_tests == 0:
-            print("🎉 ALL TESTS PASSED! Server is working perfectly!")
-            print("✅ Ready for production use!")
-            print("✅ All requirements fulfilled!")
-            print("✅ Advanced features working!")
+            print("ALL TESTS PASSED! Server is working perfectly!")
+            print("Ready for production use!")
+            print("All requirements fulfilled!")
+            print("Advanced features working!")
         else:
-            print("⚠️ Some tests failed. Check the details above.")
+            print("Some tests failed. Check the details above.")
         print("="*60)
 
 

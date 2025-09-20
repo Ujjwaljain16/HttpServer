@@ -14,10 +14,7 @@ Features:
 - File serving (HTML, images, JSON uploads)
 - CORS support for web applications
 - Graceful shutdown handling
-
-Author: ujjwaljain16
-Version: 1.0.0
-"""
+""" 
 
 from __future__ import annotations
 
@@ -535,10 +532,10 @@ def main(argv: list[str] | None = None) -> int:
     resources_dir = ensure_directories()
 
     # Print startup information
-    print(f"🚀 Starting HTTP Server on {args.host}:{args.port}")
-    print(f"📁 Resources directory: {resources_dir}")
-    print(f"🧵 Thread pool size: {args.thread_pool_size}")
-    print(f"⏹️  Press Ctrl+C to stop the server")
+    print(f"Starting HTTP Server on {args.host}:{args.port}")
+    print(f"Resources directory: {resources_dir}")
+    print(f"Thread pool size: {args.thread_pool_size}")
+    print(f"Press Ctrl+C to stop the server")
     print("-" * 50)
 
     # Register main thread

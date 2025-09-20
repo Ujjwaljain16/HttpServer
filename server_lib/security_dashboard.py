@@ -289,7 +289,7 @@ def generate_security_dashboard_html(data: Dict) -> str:
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛡️ Security Dashboard</h1>
+            <h1>Security Dashboard</h1>
             <p>Real-time security monitoring and attack detection</p>
             <button class="refresh-btn" onclick="refreshDashboard()">Refresh</button>
         </div>
@@ -322,7 +322,7 @@ def generate_security_dashboard_html(data: Dict) -> str:
         </div>
         
         <div class="section">
-            <h3>🎯 Top Attackers (Last 24h)</h3>
+            <h3>Top Attackers (Last 24h)</h3>
             <table>
                 <tr><th>IP Address</th><th>Attack Count</th></tr>
                 {''.join(f'<tr><td>{attacker["ip"]}</td><td>{attacker["attack_count"]}</td></tr>' for attacker in data['top_attackers'])}
@@ -330,7 +330,7 @@ def generate_security_dashboard_html(data: Dict) -> str:
         </div>
         
         <div class="section">
-            <h3>📊 Attack Types (Last 24h)</h3>
+            <h3>Attack Types (Last 24h)</h3>
             <table>
                 <tr><th>Attack Type</th><th>Count</th></tr>
                 {''.join(f'<tr><td>{attack_type}</td><td>{count}</td></tr>' for attack_type, count in data['attack_types'].items())}
@@ -338,7 +338,7 @@ def generate_security_dashboard_html(data: Dict) -> str:
         </div>
         
         <div class="section">
-            <h3>⚠️ Severity Distribution (Last 24h)</h3>
+            <h3>Severity Distribution (Last 24h)</h3>
             <table>
                 <tr><th>Severity</th><th>Count</th></tr>
                 {''.join(f'<tr><td class="severity-{severity}">{severity}</td><td>{count}</td></tr>' for severity, count in data['severity_distribution'].items())}
