@@ -130,7 +130,6 @@ python test_advanced_features.py
 This project includes comprehensive documentation:
 
 - **[Technical Documentation](TECHNICAL_DOCUMENTATION.md)** - Implementation details, architecture, and technical specifications
-- **[Theoretical Documentation](THEORETICAL_DOCUMENTATION.md)** - Concepts, principles, and theory behind the implementation
 
 
 ## 📁 Project Structure
