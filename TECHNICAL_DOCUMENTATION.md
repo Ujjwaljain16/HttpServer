@@ -1,13 +1,13 @@
 # 📚 Technical Documentation - Multi-threaded HTTP Server
 
 ## Table of Contents
-1. [Build and Run Instructions](#build-and-run-instructions)
-2. [Binary Transfer Implementation](#binary-transfer-implementation)
-3. [Thread Pool Architecture](#thread-pool-architecture)
-4. [Security Measures](#security-measures)
-5. [Known Limitations](#known-limitations)
-6. [Architecture Overview](#architecture-overview)
-7. [Performance Characteristics](#performance-characteristics)
+1. Build and Run Instructions
+2. Binary Transfer Implementation
+3. Thread Pool Architecture
+4. Security Measures
+5. Known Limitations
+6. Architecture Overview
+7. Performance Characteristics
 
 ---
 
@@ -21,8 +21,8 @@
 ### Quick Start
 ```bash
 # Clone the repository
-git clone https://github.com/ujjwaljain16/multi-threaded-http-server.git
-cd multi-threaded-http-server
+git clone https://github.com/ujjwaljain16/HttpServer.git
+cd HttpServer
 
 # Run with default settings (localhost:8080, 10 threads)
 python server.py
@@ -607,5 +607,3 @@ HTTP Request → Parser → Security → Thread Pool → Handler → File System
 - **Load balancing**: For multiple server instances
 
 ---
-
-This documentation provides a comprehensive technical overview of the multi-threaded HTTP server, covering all aspects from basic usage to advanced implementation details and limitations.
